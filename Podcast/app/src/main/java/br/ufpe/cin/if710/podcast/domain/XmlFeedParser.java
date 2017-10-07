@@ -67,29 +67,29 @@ public class XmlFeedParser {
                 continue;
             }
             String name = parser.getName();
-            if (name.equals("title")) {
-                title = readData(parser, "title");
-            }
-            else if (name.equals("link")) {
-                link = readData(parser, "link");
-            }
-            else if (name.equals("pubDate")) {
-                pubDate = readData(parser, "pubDate");
-            }
-            else if (name.equals("description")) {
-                description = readData(parser, "description");
-            }
-            else if (name.equals("enclosure")) {
-                //TODO implementar resto do metodo para pegar atributo url da tag enclosure
-                downloadLink = readEnclosure(parser);
-                skip(parser);
-            }
-            else {
-                skip(parser);
+            switch (name) {
+                case "title":
+                    title = readData(parser, "title");
+                    break;
+                case "link":
+                    link = readData(parser, "link");
+                    break;
+                case "pubDate":
+                    pubDate = readData(parser, "pubDate");
+                    break;
+                case "description":
+                    description = readData(parser, "description");
+                    break;
+                case "enclosure":
+                    downloadLink = readEnclosure(parser);
+                    skip(parser);
+                    break;
+                default:
+                    skip(parser);
+                    break;
             }
         }
-        ItemFeed result = new ItemFeed(title, link, pubDate, description, downloadLink);
-        return result;
+        return new ItemFeed(title, link, pubDate, description, downloadLink);
     }
 
     // Processa tags de forma parametrizada no feed.
@@ -114,10 +114,7 @@ public class XmlFeedParser {
     // Processa tags do tipo <enclosure> para obter dados do episodio
     public static String readEnclosure(XmlPullParser parser)
             throws IOException, XmlPullParserException {
-        //parser.require(XmlPullParser.START_TAG, null, "enclosure");
-        String data = "implementar...";
-        //parser.require(XmlPullParser.END_TAG, null, "enclosure");
-        return data;
+        return parser.getAttributeValue(0);
     }
 
 
