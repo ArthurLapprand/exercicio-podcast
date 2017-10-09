@@ -1,7 +1,6 @@
 package br.ufpe.cin.if710.podcast.db;
 
 import android.content.Context;
-import android.database.DatabaseErrorHandler;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
@@ -18,7 +17,7 @@ public class PodcastDBHelper extends SQLiteOpenHelper {
     private static PodcastDBHelper db;
 
     public static PodcastDBHelper getInstance(Context c) {
-        if (db==null) {
+        if (db == null) {
             db = new PodcastDBHelper(c.getApplicationContext());
         }
         return db;
@@ -31,21 +30,22 @@ public class PodcastDBHelper extends SQLiteOpenHelper {
     public final static String EPISODE_DESC = "description";
     public final static String EPISODE_DOWNLOAD_LINK = "downloadLink";
     public final static String EPISODE_FILE_URI = "downloadUri";
+    public final static String EPISODE_TIMESTAMP = "timestamp";
 
-    public final static String[] columns = {
+    public final static String[] COLUMNS = {
             _ID, EPISODE_TITLE, EPISODE_DATE, EPISODE_LINK,
             EPISODE_DESC, EPISODE_DOWNLOAD_LINK, EPISODE_FILE_URI
     };
+
     final private static String CREATE_CMD =
-            "CREATE TABLE "+DATABASE_TABLE+" (" + _ID
+            "CREATE TABLE " + DATABASE_TABLE + " (" + _ID
                     + " INTEGER PRIMARY KEY AUTOINCREMENT, "
                     + EPISODE_TITLE + " TEXT NOT NULL, "
                     + EPISODE_DATE + " TEXT NOT NULL, "
                     + EPISODE_LINK + " TEXT NOT NULL, "
                     + EPISODE_DESC + " TEXT NOT NULL, "
                     + EPISODE_DOWNLOAD_LINK + " TEXT NOT NULL, "
-                    + EPISODE_FILE_URI + " TEXT NOT NULL)";
-
+                    + EPISODE_FILE_URI + " TEXT)";
 
 
     @Override
@@ -57,4 +57,5 @@ public class PodcastDBHelper extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
         throw new RuntimeException("inutilizado");
     }
+
 }

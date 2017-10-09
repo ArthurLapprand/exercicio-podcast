@@ -1,5 +1,7 @@
 package br.ufpe.cin.if710.podcast.domain;
 
+import android.util.Log;
+
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -8,6 +10,8 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+
+import br.ufpe.cin.if710.podcast.ui.MainActivity;
 
 public class XmlFeedParser {
 
@@ -21,7 +25,7 @@ public class XmlFeedParser {
 
     public static List<ItemFeed> readRss(XmlPullParser parser)
             throws XmlPullParserException, IOException {
-        List<ItemFeed> items = new ArrayList<ItemFeed>();
+        List<ItemFeed> items = new ArrayList<>();
         parser.require(XmlPullParser.START_TAG, null, "rss");
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
@@ -39,7 +43,7 @@ public class XmlFeedParser {
 
     public static List<ItemFeed> readChannel(XmlPullParser parser)
             throws IOException, XmlPullParserException {
-        List<ItemFeed> items = new ArrayList<ItemFeed>();
+        List<ItemFeed> items = new ArrayList<>();
         parser.require(XmlPullParser.START_TAG, null, "channel");
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
@@ -71,8 +75,8 @@ public class XmlFeedParser {
                 case "title":
                     title = readData(parser, "title");
                     break;
-                case "link":
-                    link = readData(parser, "link");
+                case "guid":
+                    link = readData(parser, "guid");
                     break;
                 case "pubDate":
                     pubDate = readData(parser, "pubDate");

@@ -1,36 +1,41 @@
 package br.ufpe.cin.if710.podcast.ui;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
+import android.content.IntentFilter;
+import android.database.Cursor;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import org.xmlpull.v1.XmlPullParserException;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import br.ufpe.cin.if710.podcast.R;
-import br.ufpe.cin.if710.podcast.domain.ItemFeed;
-import br.ufpe.cin.if710.podcast.domain.XmlFeedParser;
+import br.ufpe.cin.if710.podcast.domain.NewItemFeed;
+import br.ufpe.cin.if710.podcast.services.DownloadXMLIntentService;
 import br.ufpe.cin.if710.podcast.ui.adapter.XmlFeedAdapter;
+
+import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.COLUMNS;
+import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_LIST_URI;
+import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.INFO_COLUMNS;
+import static br.ufpe.cin.if710.podcast.services.DownloadXMLIntentService.BROADCAST_ACTION;
+import static br.ufpe.cin.if710.podcast.services.DownloadXMLIntentService.BROADCAST_TYPE;
+import static br.ufpe.cin.if710.podcast.services.DownloadXMLIntentService.DOWNLOAD_PODCAST_BROADCAST;
+import static br.ufpe.cin.if710.podcast.services.DownloadXMLIntentService.GET_DATA_BROADCAST;
 
 public class MainActivity extends Activity {
 
+    public final static String TAG = "MAIN_ACTIVITY";
+
     //ao fazer envio da resolucao, use este link no seu codigo!
     private final String RSS_FEED = "http://leopoldomt.com/if710/fronteirasdaciencia.xml";
-    //TODO teste com outros links de podcast
 
     private ListView items;
 
@@ -39,7 +44,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        items = (ListView) findViewById(R.id.items);
+        items = findViewById(R.id.items);
     }
 
     @Override
@@ -57,7 +62,7 @@ public class MainActivity extends Activity {
         int id = item.getItemId();
 
         if (id == R.id.action_settings) {
-            startActivity(new Intent(this,SettingsActivity.class));
+            startActivity(new Intent(this, SettingsActivity.class));
         }
 
         return super.onOptionsItemSelected(item);
@@ -66,45 +71,105 @@ public class MainActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
-        new DownloadXmlTask().execute(RSS_FEED);
+
+        // Register Dynamic Receiver
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                MyDynamicReceiver,
+                new IntentFilter(BROADCAST_ACTION)
+        );
+
+        // Calls service to download podcasts info
+        DownloadXMLIntentService.startActionGetData(this);
+
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+
+        // Unregister Dynamic Receiver
+        LocalBroadcastManager.getInstance(this)
+                .unregisterReceiver(MyDynamicReceiver);
+
         XmlFeedAdapter adapter = (XmlFeedAdapter) items.getAdapter();
-        adapter.clear();
+        if (adapter != null) adapter.clear();
     }
 
-    private class DownloadXmlTask extends AsyncTask<String, Void, List<ItemFeed>> {
-        @Override
-        protected void onPreExecute() {
-            Toast.makeText(getApplicationContext(), "iniciando...", Toast.LENGTH_SHORT).show();
-        }
+    /* ==== Receives broadcasts from IntentService ==== */
+    public BroadcastReceiver MyDynamicReceiver = new BroadcastReceiver() {
 
         @Override
-        protected List<ItemFeed> doInBackground(String... params) {
-            List<ItemFeed> itemList = new ArrayList<>();
-            try {
-                itemList = XmlFeedParser.parse(getRssFeed(params[0]));
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (XmlPullParserException e) {
-                e.printStackTrace();
+        public void onReceive(Context context, Intent intent) {
+            String bcType = intent.getStringExtra(BROADCAST_TYPE);
+
+            switch (bcType) {
+                case GET_DATA_BROADCAST:
+                    updatePodcastList();
+                    break;
+                case DOWNLOAD_PODCAST_BROADCAST:
+                    break;
+                default:
+                    Toast.makeText(context, "Error: wrong broadcast type!", Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Error: wrong broadcast type.");
+                    break;
             }
-            return itemList;
+        }
+    };
+
+    private void updatePodcastList() {
+
+//        CursorLoader cursorLoader = new CursorLoader(
+//                this,
+//                EPISODE_LIST_URI,
+//                COLUMNS,
+//                null, null, null
+//        );
+
+//        Cursor c = cursorLoader.loadInBackground();
+
+        Cursor c = getContentResolver().query(
+                EPISODE_LIST_URI,
+                COLUMNS,
+                null, null, null
+        );
+
+        List<NewItemFeed> feed = new ArrayList<>();
+        assert c != null;
+        String[] infos = new String[c.getColumnNames().length];
+
+        int i, j;
+        if (c.moveToFirst()) {
+            do {
+                j = 0;
+                for (String column : INFO_COLUMNS) {
+                    i = c.getColumnIndex(column);
+                    infos[j++] = c.getString(i);
+                }
+                feed.add(new NewItemFeed(infos));
+            } while (c.moveToNext());
         }
 
-        @Override
-        protected void onPostExecute(List<ItemFeed> feed) {
-            Toast.makeText(getApplicationContext(), "terminando...", Toast.LENGTH_SHORT).show();
+        c.close();
 
-            //Adapter Personalizado
-            XmlFeedAdapter adapter = new XmlFeedAdapter(getApplicationContext(), R.layout.itemlista, feed);
+//        ContentResolver contentResolver = getContentResolver();
+//        SimpleCursorAdapter adapter = new SimpleCursorAdapter(
+//                this, R.layout.itemlista,
+//                contentResolver.query(
+//                        EPISODE_LIST_URI,
+//                        COLUMNS,
+//                        null, null, null, null
+//                ),
+//                new String[]{EPISODE_TITLE, EPISODE_DATE},
+//                new int[]{R.id.item_title, R.id.item_date},
+//                CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER
+//        );
 
-            //atualizar o list view
-            items.setAdapter(adapter);
-            items.setTextFilterEnabled(true);
+        //Adapter Personalizado
+        XmlFeedAdapter adapter = new XmlFeedAdapter(getApplicationContext(), R.layout.itemlista, feed);
+
+        //atualizar o list view
+        items.setAdapter(adapter);
+        items.setTextFilterEnabled(true);
             /*
             items.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
@@ -116,29 +181,6 @@ public class MainActivity extends Activity {
                 }
             });
             /**/
-        }
     }
 
-    //TODO Opcional - pesquise outros meios de obter arquivos da internet
-    private String getRssFeed(String feed) throws IOException {
-        InputStream in = null;
-        String rssFeed = "";
-        try {
-            URL url = new URL(feed);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            in = conn.getInputStream();
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            byte[] buffer = new byte[1024];
-            for (int count; (count = in.read(buffer)) != -1; ) {
-                out.write(buffer, 0, count);
-            }
-            byte[] response = out.toByteArray();
-            rssFeed = new String(response, "UTF-8");
-        } finally {
-            if (in != null) {
-                in.close();
-            }
-        }
-        return rssFeed;
-    }
 }

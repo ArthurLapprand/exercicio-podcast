@@ -5,8 +5,23 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 
+import static br.ufpe.cin.if710.podcast.db.PodcastDBHelper.DATABASE_TABLE;
+
 public class PodcastProvider extends ContentProvider {
+
+    PodcastDBHelper helper;
+
     public PodcastProvider() {
+    }
+
+    @Override
+    public boolean onCreate() {
+        helper = PodcastDBHelper.getInstance(getContext());
+        return true;
+    }
+
+    private boolean isEpisodesUri(Uri uri) {
+        return uri.getLastPathSegment().equals(PodcastProviderContract.DATABASE_TABLE);
     }
 
     @Override
@@ -24,27 +39,38 @@ public class PodcastProvider extends ContentProvider {
 
     @Override
     public Uri insert(Uri uri, ContentValues values) {
-        // TODO: Implement this to handle requests to insert a new row.
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    @Override
-    public boolean onCreate() {
-        // TODO: Implement this to initialize your content provider on startup.
-        return false;
+        if (isEpisodesUri(uri)) {
+            long id = helper.getWritableDatabase().insert(
+                    DATABASE_TABLE, null, values
+            );
+            return Uri.withAppendedPath(PodcastProviderContract.EPISODE_LIST_URI, Long.toString(id));
+        } else return null;
     }
 
     @Override
     public Cursor query(Uri uri, String[] projection, String selection,
                         String[] selectionArgs, String sortOrder) {
-        // TODO: Implement this to handle query requests from clients.
-        throw new UnsupportedOperationException("Not yet implemented");
+        Cursor cursor = null;
+        if (isEpisodesUri(uri)) {
+            cursor = helper.getReadableDatabase().query(
+                    DATABASE_TABLE,
+                    projection,
+                    selection,
+                    selectionArgs,
+                    null, null,
+                    sortOrder
+            );
+        }
+        return cursor;
     }
 
     @Override
     public int update(Uri uri, ContentValues values, String selection,
                       String[] selectionArgs) {
-        // TODO: Implement this to handle requests to update one or more rows.
-        throw new UnsupportedOperationException("Not yet implemented");
+        if (isEpisodesUri(uri)) {
+            return helper.getWritableDatabase().update(
+                    DATABASE_TABLE, values, selection, selectionArgs
+            );
+        } else return 0;
     }
 }
