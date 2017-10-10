@@ -13,4 +13,5 @@
     <string name="title_activity_settings">SettingsActivity</string>
     <string name="channel_name">Notification Channel</string>
     <string name="channel_description">Channel used for all notifications in app</string>
+    <string name="on_permission_denied_message"><![CDATA[If you reject this permission, you can not download podcasts!  Please turn on permissions at [Settings] > [Permissions]]]></string>
 </resources>

@@ -134,42 +134,29 @@ public class MainActivity extends Activity {
         );
 
         List<NewItemFeed> feed = new ArrayList<>();
-        assert c != null;
-        String[] infos = new String[c.getColumnNames().length];
+        if (c != null) {
+            String[] infos = new String[c.getColumnNames().length];
 
-        int i, j;
-        if (c.moveToFirst()) {
-            do {
-                j = 0;
-                for (String column : INFO_COLUMNS) {
-                    i = c.getColumnIndex(column);
-                    infos[j++] = c.getString(i);
-                }
-                feed.add(new NewItemFeed(infos));
-            } while (c.moveToNext());
-        }
+            int i, j;
+            if (c.moveToFirst()) {
+                do {
+                    j = 0;
+                    for (String column : INFO_COLUMNS) {
+                        i = c.getColumnIndex(column);
+                        infos[j++] = c.getString(i);
+                    }
+                    feed.add(new NewItemFeed(infos));
+                } while (c.moveToNext());
+            }
 
-        c.close();
+            c.close();
 
-//        ContentResolver contentResolver = getContentResolver();
-//        SimpleCursorAdapter adapter = new SimpleCursorAdapter(
-//                this, R.layout.itemlista,
-//                contentResolver.query(
-//                        EPISODE_LIST_URI,
-//                        COLUMNS,
-//                        null, null, null, null
-//                ),
-//                new String[]{EPISODE_TITLE, EPISODE_DATE},
-//                new int[]{R.id.item_title, R.id.item_date},
-//                CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER
-//        );
+            //Adapter Personalizado
+            XmlFeedAdapter adapter = new XmlFeedAdapter(getApplicationContext(), R.layout.itemlista, feed);
 
-        //Adapter Personalizado
-        XmlFeedAdapter adapter = new XmlFeedAdapter(getApplicationContext(), R.layout.itemlista, feed);
-
-        //atualizar o list view
-        items.setAdapter(adapter);
-        items.setTextFilterEnabled(true);
+            //atualizar o list view
+            items.setAdapter(adapter);
+            items.setTextFilterEnabled(true);
             /*
             items.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
@@ -181,6 +168,7 @@ public class MainActivity extends Activity {
                 }
             });
             /**/
+        }
     }
 
 }

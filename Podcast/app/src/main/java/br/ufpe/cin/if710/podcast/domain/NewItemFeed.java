@@ -6,12 +6,12 @@ package br.ufpe.cin.if710.podcast.domain;
 
 public class NewItemFeed extends ItemFeed {
 
-    public NewItemFeed(String title, String link, String pubDate, String description, String downloadLink) {
-        super(title, link, pubDate, description, downloadLink);
+    public NewItemFeed(String title, String link, String pubDate, String description, String downloadLink, String downloadUri) {
+        super(title, link, pubDate, description, downloadLink, downloadUri);
     }
 
-    public NewItemFeed(String[] infos) {
-        super(infos[0], infos[1], infos[2], infos[3], infos[4]);
+    public NewItemFeed(String[] info) {
+        super(info[0], info[1], info[2], info[3], info[4], info[5]);
     }
 
 }

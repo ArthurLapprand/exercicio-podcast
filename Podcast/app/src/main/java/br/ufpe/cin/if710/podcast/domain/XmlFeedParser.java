@@ -1,7 +1,5 @@
 package br.ufpe.cin.if710.podcast.domain;
 
-import android.util.Log;
-
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -10,8 +8,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
-
-import br.ufpe.cin.if710.podcast.ui.MainActivity;
 
 public class XmlFeedParser {
 
@@ -93,7 +89,7 @@ public class XmlFeedParser {
                     break;
             }
         }
-        return new ItemFeed(title, link, pubDate, description, downloadLink);
+        return new ItemFeed(title, link, pubDate, description, downloadLink, null);
     }
 
     // Processa tags de forma parametrizada no feed.

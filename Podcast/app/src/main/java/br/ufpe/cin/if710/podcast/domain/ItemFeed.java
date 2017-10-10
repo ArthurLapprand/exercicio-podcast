@@ -6,14 +6,16 @@ public class ItemFeed {
     private final String pubDate;
     private final String description;
     private final String downloadLink;
+    private final String downloadUri;
 
 
-    public ItemFeed(String title, String link, String pubDate, String description, String downloadLink) {
+    public ItemFeed(String title, String link, String pubDate, String description, String downloadLink, String downloadUri) {
         this.title = title;
         this.link = link;
         this.pubDate = pubDate;
         this.description = description;
         this.downloadLink = downloadLink;
+        this.downloadUri = downloadUri;
     }
 
     public String getTitle() {
@@ -34,6 +36,10 @@ public class ItemFeed {
 
     public String getDownloadLink() {
         return downloadLink;
+    }
+
+    public String getDownloadUri() {
+        return downloadUri;
     }
 
     @Override
