@@ -34,6 +34,9 @@ public class MainActivity extends Activity {
 
     public final static String TAG = "MAIN_ACTIVITY";
 
+    // Used to refresh podcast list on notification click
+    public final static String UPDATE_LIST_ACTION = "UPDATE";
+
     //ao fazer envio da resolucao, use este link no seu codigo!
     private final String RSS_FEED = "http://leopoldomt.com/if710/fronteirasdaciencia.xml";
 
@@ -78,8 +81,18 @@ public class MainActivity extends Activity {
                 new IntentFilter(BROADCAST_ACTION)
         );
 
-        // Calls service to download podcasts info
-        DownloadXMLIntentService.startActionGetData(this);
+        // Check if starting from notification click
+        switch (getIntent().getAction()) {
+            case UPDATE_LIST_ACTION:
+                updatePodcastList();
+                break;
+
+            default:
+                // Calls service to download podcasts info
+                DownloadXMLIntentService.startActionGetData(this);
+                break;
+        }
+
 
     }
 

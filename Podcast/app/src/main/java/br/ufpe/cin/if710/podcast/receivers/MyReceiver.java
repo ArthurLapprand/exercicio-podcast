@@ -66,18 +66,21 @@ public class MyReceiver extends BroadcastReceiver {
 
         // Creates an explicit intent for MainActivity
         Intent resultIntent = new Intent(context, MainActivity.class);
+        resultIntent.setAction(MainActivity.UPDATE_LIST_ACTION);
 
         // This ensures that navigating backward from the Activity leads out of
         // your app to the Home screen.
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
+
         // Adds the back stack for the Intent (but not the Intent itself)
         stackBuilder.addParentStack(MainActivity.class);
+
         // Adds the Intent that starts the Activity to the top of the stack
         stackBuilder.addNextIntent(resultIntent);
         PendingIntent resultPendingIntent =
                 stackBuilder.getPendingIntent(
-                        0,
-                        PendingIntent.FLAG_UPDATE_CURRENT
+                        777,
+                        PendingIntent.FLAG_ONE_SHOT
                 );
         mNotificationBuilder.setContentIntent(resultPendingIntent);
         mNotificationManager.notify(MY_NOTIFICATION_ID, mNotificationBuilder.build());
