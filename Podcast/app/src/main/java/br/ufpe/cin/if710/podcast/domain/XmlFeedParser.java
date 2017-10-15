@@ -11,7 +11,7 @@ import java.util.List;
 
 public class XmlFeedParser {
 
-    public static List<ItemFeed> parse(String xmlFeed) throws XmlPullParserException, IOException {
+    public static List<NewItemFeed> parse(String xmlFeed) throws XmlPullParserException, IOException {
         XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
         XmlPullParser xpp = factory.newPullParser();
         xpp.setInput(new StringReader(xmlFeed));
@@ -19,9 +19,9 @@ public class XmlFeedParser {
         return readRss(xpp);
     }
 
-    public static List<ItemFeed> readRss(XmlPullParser parser)
+    public static List<NewItemFeed> readRss(XmlPullParser parser)
             throws XmlPullParserException, IOException {
-        List<ItemFeed> items = new ArrayList<>();
+        List<NewItemFeed> items = new ArrayList<>();
         parser.require(XmlPullParser.START_TAG, null, "rss");
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
@@ -37,9 +37,9 @@ public class XmlFeedParser {
         return items;
     }
 
-    public static List<ItemFeed> readChannel(XmlPullParser parser)
+    public static List<NewItemFeed> readChannel(XmlPullParser parser)
             throws IOException, XmlPullParserException {
-        List<ItemFeed> items = new ArrayList<>();
+        List<NewItemFeed> items = new ArrayList<>();
         parser.require(XmlPullParser.START_TAG, null, "channel");
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
@@ -55,7 +55,7 @@ public class XmlFeedParser {
         return items;
     }
 
-    public static ItemFeed readItem(XmlPullParser parser) throws XmlPullParserException, IOException {
+    public static NewItemFeed readItem(XmlPullParser parser) throws XmlPullParserException, IOException {
         String title = null;
         String link = null;
         String pubDate = null;
@@ -89,7 +89,7 @@ public class XmlFeedParser {
                     break;
             }
         }
-        return new ItemFeed(title, link, pubDate, description, downloadLink, null);
+        return new NewItemFeed(title, link, pubDate, description, downloadLink, null, -1);
     }
 
     // Processa tags de forma parametrizada no feed.

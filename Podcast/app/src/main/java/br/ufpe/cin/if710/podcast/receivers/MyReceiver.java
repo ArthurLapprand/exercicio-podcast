@@ -15,7 +15,7 @@ import br.ufpe.cin.if710.podcast.applications.MyApplication;
 import br.ufpe.cin.if710.podcast.ui.MainActivity;
 
 import static br.ufpe.cin.if710.podcast.services.DownloadXMLIntentService.BROADCAST_TYPE;
-import static br.ufpe.cin.if710.podcast.services.DownloadXMLIntentService.DOWNLOAD_PODCAST_BROADCAST;
+import static br.ufpe.cin.if710.podcast.services.DownloadXMLIntentService.PODCAST_DOWNLOADED_BROADCAST;
 import static br.ufpe.cin.if710.podcast.services.DownloadXMLIntentService.GET_DATA_BROADCAST;
 
 public class MyReceiver extends BroadcastReceiver {
@@ -45,8 +45,8 @@ public class MyReceiver extends BroadcastReceiver {
             case GET_DATA_BROADCAST:
                 sendNotification();
                 break;
-            case DOWNLOAD_PODCAST_BROADCAST:
-                downloadPodcast();
+            case PODCAST_DOWNLOADED_BROADCAST:
+                changeButtonToReady();
                 break;
             default:
                 Toast.makeText(context, "Error: wrong broadcast type!", Toast.LENGTH_SHORT).show();
@@ -86,7 +86,7 @@ public class MyReceiver extends BroadcastReceiver {
         mNotificationManager.notify(MY_NOTIFICATION_ID, mNotificationBuilder.build());
     }
 
-    private void downloadPodcast() {
+    private void changeButtonToReady() {
 
     }
 

@@ -13,21 +13,22 @@
 
         <TextView
             android:id="@+id/item_title"
-            android:layout_width="150dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="8"
-            android:text="@string/action_downloading"
-            android:textColor="@android:color/holo_green_dark"
+            android:layout_weight="1"
+            android:text="@string/action_downloading..."
+            android:textColor="@color/highlighted"
             android:textSize="18sp" />
 
+        <!-- Icon/Text is set programmatically -->
         <Button
             android:id="@+id/item_action"
-            android:layout_width="85dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="2"
-            android:backgroundTint="@android:color/holo_purple"
-            android:text="@string/action_download"
-            android:textColor="@android:color/white" />
+            android:layout_weight="0"
+            android:text=""
+            android:backgroundTint="@color/highlighted"
+            android:textColor="@color/app_dark_background" />
 
     </LinearLayout>
 
@@ -35,6 +36,7 @@
         android:id="@+id/item_date"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="12sp"/>
+        android:textSize="12sp"
+        android:textColor="@color/normalText"/>
 
 </LinearLayout>

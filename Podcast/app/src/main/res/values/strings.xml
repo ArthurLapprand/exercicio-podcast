@@ -1,7 +1,9 @@
 <resources>
     <string name="app_name">Podcast</string>
-    <string name="action_download">baixar</string>
-    <string name="action_downloading">baixando...</string>
+    <string name="action_download">download</string>
+    <string name="action_play">play</string>
+    <string name="action_downloading">downloading</string>
+    <string name="action_downloading...">downloading…</string>
     <string name="action_listen">escutar</string>
     <string name="feed_link">http://leopoldomt.com/if710/fronteirasdaciencia.xml</string>
     <string name="change">Modificar</string>

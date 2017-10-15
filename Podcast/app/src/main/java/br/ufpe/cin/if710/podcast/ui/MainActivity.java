@@ -23,11 +23,12 @@ import br.ufpe.cin.if710.podcast.services.DownloadXMLIntentService;
 import br.ufpe.cin.if710.podcast.ui.adapter.XmlFeedAdapter;
 
 import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.COLUMNS;
+import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_IS_DOWNLOADING;
 import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_LIST_URI;
 import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.INFO_COLUMNS;
 import static br.ufpe.cin.if710.podcast.services.DownloadXMLIntentService.BROADCAST_ACTION;
 import static br.ufpe.cin.if710.podcast.services.DownloadXMLIntentService.BROADCAST_TYPE;
-import static br.ufpe.cin.if710.podcast.services.DownloadXMLIntentService.DOWNLOAD_PODCAST_BROADCAST;
+import static br.ufpe.cin.if710.podcast.services.DownloadXMLIntentService.PODCAST_DOWNLOADED_BROADCAST;
 import static br.ufpe.cin.if710.podcast.services.DownloadXMLIntentService.GET_DATA_BROADCAST;
 
 public class MainActivity extends Activity {
@@ -119,7 +120,7 @@ public class MainActivity extends Activity {
                 case GET_DATA_BROADCAST:
                     updatePodcastList();
                     break;
-                case DOWNLOAD_PODCAST_BROADCAST:
+                case PODCAST_DOWNLOADED_BROADCAST:
                     break;
                 default:
                     Toast.makeText(context, "Error: wrong broadcast type!", Toast.LENGTH_SHORT).show();
@@ -131,15 +132,6 @@ public class MainActivity extends Activity {
 
     private void updatePodcastList() {
 
-//        CursorLoader cursorLoader = new CursorLoader(
-//                this,
-//                EPISODE_LIST_URI,
-//                COLUMNS,
-//                null, null, null
-//        );
-
-//        Cursor c = cursorLoader.loadInBackground();
-
         Cursor c = getContentResolver().query(
                 EPISODE_LIST_URI,
                 COLUMNS,
@@ -148,17 +140,20 @@ public class MainActivity extends Activity {
 
         List<NewItemFeed> feed = new ArrayList<>();
         if (c != null) {
-            String[] infos = new String[c.getColumnNames().length];
+            String[] info = new String[c.getColumnNames().length];
 
             int i, j;
+            int isDownloading;
             if (c.moveToFirst()) {
                 do {
                     j = 0;
                     for (String column : INFO_COLUMNS) {
                         i = c.getColumnIndex(column);
-                        infos[j++] = c.getString(i);
+                        info[j++] = c.getString(i);
                     }
-                    feed.add(new NewItemFeed(infos));
+                    i = c.getColumnIndex(EPISODE_IS_DOWNLOADING);
+                    isDownloading = c.getInt(i);
+                    feed.add(new NewItemFeed(info, isDownloading));
                 } while (c.moveToNext());
             }
 

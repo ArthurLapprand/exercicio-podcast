@@ -9,19 +9,24 @@ import android.net.Uri;
 
 public class PodcastProviderContract {
 
-    public final static String _ID = "_id";
+    final static String DATABASE_NAME = "podcasts";
+
+    final static String DATABASE_TABLE = "episodes";
+
+    final static String _ID = "_id";
     public final static String EPISODE_TITLE = "title";
     public final static String EPISODE_DATE = "pubDate";
     public final static String EPISODE_LINK = "link";
     public final static String EPISODE_DESC = "description";
     public final static String EPISODE_DOWNLOAD_LINK = "downloadLink";
     public final static String EPISODE_FILE_URI = "downloadUri";
-    public final static String DATABASE_TABLE = "episodes";
+    public final static String EPISODE_IS_DOWNLOADING = "isDownloading";
 
 
     public final static String[] COLUMNS = {
             _ID, EPISODE_TITLE, EPISODE_DATE, EPISODE_LINK,
-            EPISODE_DESC, EPISODE_DOWNLOAD_LINK, EPISODE_FILE_URI
+            EPISODE_DESC, EPISODE_DOWNLOAD_LINK, EPISODE_FILE_URI,
+            EPISODE_IS_DOWNLOADING
     };
 
     public final static String[] INFO_COLUMNS = {
@@ -32,7 +37,7 @@ public class PodcastProviderContract {
     private static final Uri BASE_LIST_URI = Uri.parse("content://br.ufpe.cin.if710.podcast.feed/");
 
     //URI para tabela
-    public static final Uri EPISODE_LIST_URI = Uri.withAppendedPath(BASE_LIST_URI, PodcastDBHelper.DATABASE_TABLE);
+    public static final Uri EPISODE_LIST_URI = Uri.withAppendedPath(BASE_LIST_URI, DATABASE_TABLE);
 
     // Mime type para colecao de itens
     public static final String CONTENT_DIR_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/PodcastProvider.data.text";

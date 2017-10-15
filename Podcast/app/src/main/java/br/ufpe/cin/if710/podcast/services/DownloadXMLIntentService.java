@@ -7,7 +7,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Environment;
 import android.support.v4.content.LocalBroadcastManager;
@@ -31,7 +30,6 @@ import java.util.List;
 
 import br.ufpe.cin.if710.podcast.R;
 import br.ufpe.cin.if710.podcast.applications.MyApplication;
-import br.ufpe.cin.if710.podcast.domain.ItemFeed;
 import br.ufpe.cin.if710.podcast.domain.NewItemFeed;
 import br.ufpe.cin.if710.podcast.domain.XmlFeedParser;
 import br.ufpe.cin.if710.podcast.receivers.MyReceiver;
@@ -41,10 +39,10 @@ import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_DATE;
 import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_DESC;
 import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_DOWNLOAD_LINK;
 import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_FILE_URI;
+import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_IS_DOWNLOADING;
 import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_LINK;
 import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_LIST_URI;
 import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_TITLE;
-import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.INFO_COLUMNS;
 
 public class DownloadXMLIntentService extends IntentService implements PermissionListener {
 
@@ -59,7 +57,7 @@ public class DownloadXMLIntentService extends IntentService implements Permissio
     public static final String BROADCAST_TYPE = "BROADCAST_TYPE";
 
     public static final String GET_DATA_BROADCAST = "GET_DATA";
-    public static final String DOWNLOAD_PODCAST_BROADCAST = "DOWNLOAD_PODCAST";
+    public static final String PODCAST_DOWNLOADED_BROADCAST = "DOWNLOAD_PODCAST";
 
     // Service download variables
     private String downloadLink;
@@ -107,15 +105,16 @@ public class DownloadXMLIntentService extends IntentService implements Permissio
 
         ContentResolver contentResolver = getContentResolver();
         ContentValues contentValues = new ContentValues();
-        List<ItemFeed> itemList = XmlFeedParser.parse(getRssFeed(feedLink));
+        List<NewItemFeed> itemList = XmlFeedParser.parse(getRssFeed(feedLink));
 
-        for (ItemFeed item : itemList) {
+        for (NewItemFeed item : itemList) {
             contentValues.clear();
             contentValues.put(EPISODE_TITLE, item.getTitle());
             contentValues.put(EPISODE_LINK, item.getLink());
             contentValues.put(EPISODE_DATE, item.getPubDate());
             contentValues.put(EPISODE_DESC, item.getDescription());
             contentValues.put(EPISODE_DOWNLOAD_LINK, item.getDownloadLink());
+//            contentValues.put(EPISODE_IS_DOWNLOADING, 0);
 
             // If item doesn't exist, insert it
             if (contentResolver.update(
@@ -128,12 +127,6 @@ public class DownloadXMLIntentService extends IntentService implements Permissio
         }
 
         MyApplication app = (MyApplication) (getApplicationContext());
-
-//        try {
-//            Thread.sleep(5000);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
 
         if (app.isInBackground() || !app.areActivitiesCreated()) {
             Intent broadcastIntent = new Intent(getApplicationContext(), MyReceiver.class);
@@ -188,7 +181,23 @@ public class DownloadXMLIntentService extends IntentService implements Permissio
 
     @Override
     public void onPermissionGranted() {
-        startDownload();
+        /* Start a thread, set item as downloading
+           and start download */
+        new Thread (new Runnable() {
+            @Override
+            public void run() {
+                ContentValues contentValues = new ContentValues();
+                contentValues.put(EPISODE_IS_DOWNLOADING, 1);
+                getContentResolver().update(
+                        EPISODE_LIST_URI,
+                        contentValues,
+                        EPISODE_DOWNLOAD_LINK + " =? ",
+                        new String[]{downloadLink}
+                );
+
+                startDownload();
+            }
+        }).start();
     }
 
     @Override
@@ -236,39 +245,16 @@ public class DownloadXMLIntentService extends IntentService implements Permissio
                 String path = "file://" + out.getAbsolutePath();
                 ContentValues contentValues = new ContentValues();
                 contentValues.put(EPISODE_FILE_URI, path);
-                int q = getContentResolver().update(
+                contentValues.put(EPISODE_IS_DOWNLOADING, 2);
+                getContentResolver().update(
                         EPISODE_LIST_URI,
                         contentValues,
                         EPISODE_DOWNLOAD_LINK + " =? ",
                         new String[]{downloadLink}
                 );
 
-                Cursor c = getContentResolver().query(
-                        EPISODE_LIST_URI,
-                        INFO_COLUMNS,
-                        null, null, null
-                );
-
-                List<NewItemFeed> feed = new ArrayList<>();
-                if (c != null) {
-                    String[] infos = new String[c.getColumnNames().length];
-
-                    int i, j;
-                    if (c.moveToFirst()) {
-                        do {
-                            j = 0;
-                            for (String column : INFO_COLUMNS) {
-                                i = c.getColumnIndex(column);
-                                infos[j++] = c.getString(i);
-                            }
-                            feed.add(new NewItemFeed(infos));
-                        } while (c.moveToNext());
-                    }
-                    c.close();
-                }
-
                 Intent broadcastIntent = new Intent(getApplicationContext(), MyReceiver.class);
-                broadcastIntent.putExtra(BROADCAST_TYPE, DOWNLOAD_PODCAST_BROADCAST);
+                broadcastIntent.putExtra(BROADCAST_TYPE, PODCAST_DOWNLOADED_BROADCAST);
                 getApplicationContext().sendBroadcast(broadcastIntent);
             }
         } catch (IOException e) {

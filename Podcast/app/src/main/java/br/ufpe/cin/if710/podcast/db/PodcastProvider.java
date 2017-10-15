@@ -5,7 +5,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 
-import static br.ufpe.cin.if710.podcast.db.PodcastDBHelper.DATABASE_TABLE;
+import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.DATABASE_TABLE;
 
 public class PodcastProvider extends ContentProvider {
 
@@ -21,7 +21,7 @@ public class PodcastProvider extends ContentProvider {
     }
 
     private boolean isEpisodesUri(Uri uri) {
-        return uri.getLastPathSegment().equals(PodcastProviderContract.DATABASE_TABLE);
+        return uri.getLastPathSegment().equals(DATABASE_TABLE);
     }
 
     @Override
