@@ -14,12 +14,13 @@ import java.util.List;
 
 import br.ufpe.cin.if710.podcast.R;
 import br.ufpe.cin.if710.podcast.domain.NewItemFeed;
-import br.ufpe.cin.if710.podcast.services.DownloadXMLIntentService;
+import br.ufpe.cin.if710.podcast.services.DownloadIntentService;
 import br.ufpe.cin.if710.podcast.ui.EpisodeDetailActivity;
+import br.ufpe.cin.if710.podcast.ui.MusicPlayerActivity;
 
 public class XmlFeedAdapter extends ArrayAdapter<NewItemFeed> {
 
-    int linkResource;
+    private int linkResource;
 
     public XmlFeedAdapter(Context context, int resource, List<NewItemFeed> objects) {
         super(context, resource, objects);
@@ -27,7 +28,7 @@ public class XmlFeedAdapter extends ArrayAdapter<NewItemFeed> {
     }
 
     //http://developer.android.com/training/improving-layouts/smooth-scrolling.html#ViewHolder
-    static class ViewHolder {
+    private static class ViewHolder {
         TextView item_title;
         TextView item_date;
         Button item_action;
@@ -67,44 +68,50 @@ public class XmlFeedAdapter extends ArrayAdapter<NewItemFeed> {
         int dlIcon = R.drawable.ic_file_download_32dp;
         int playIcon = R.drawable.ic_file_play_32dp;
 
-        // If DOWNLOADING, disable button and set text
-        if (item.isDownloading() == 1) {
+        // If DOWNLOADING, disable button and set text and icon
+        if (item.getDownloadState() == 1) {
             holder.item_action.setEnabled(false);
+            setIcon(holder.item_action, dlIcon);
             holder.item_action.setText(R.string.action_downloading);
         }
 
         // If DOWNLOADED, enable button and set play icon
-        else if (item.isDownloading() == 2) {
+        else if (item.getDownloadState() == 2) {
             if (item.getDownloadUri() == null) {
                 Toast.makeText(getContext(), "Error while getting file location", Toast.LENGTH_SHORT).show();
             } else {
+                holder.item_action.setEnabled(true);
                 setIcon(holder.item_action, playIcon);
                 holder.item_action.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-
+                        Intent intent = new Intent(getContext(), MusicPlayerActivity.class);
+                        intent.putExtra(getContext().getString(R.string.podcast_uri), item.getDownloadUri());
+                        getContext().startActivity(intent);
                     }
                 });
             }
-            holder.item_action.setEnabled(false);
-            setIcon(holder.item_action, dlIcon);
         }
 
         // If NOT DOWNLOADED/DOWNLOADING, enable button and set download icon
         else {
+            holder.item_action.setEnabled(true);
+            holder.item_action.setText("");
             setIcon(holder.item_action, dlIcon);
             holder.item_action.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    Button btn = (Button) v;
                     // Disable button
-                    if (v.isEnabled()) {
-                        Toast.makeText(getContext(), "DOWNLOADING", Toast.LENGTH_SHORT).show();
-                        v.setEnabled(false);
+                    if (btn.isEnabled()) {
+                        btn.setEnabled(false);
                         // Calls service to download the podcast
-                        DownloadXMLIntentService
+                        DownloadIntentService
                                 .startActionDownloadPodcast(
                                         getContext(), item.getDownloadLink()
                                 );
+                        // Update button to downloading
+                        btn.setText(R.string.action_downloading);
                     } else {
                         Toast.makeText(getContext(), "DISABLED", Toast.LENGTH_SHORT).show();
                     }

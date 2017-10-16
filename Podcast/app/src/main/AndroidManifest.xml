@@ -13,6 +13,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
+        <!-- ACTIVITIES -->
         <activity android:name=".ui.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -20,22 +22,31 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.SettingsActivity" />
 
+        <activity android:name=".ui.SettingsActivity" />
+        <activity android:name=".ui.EpisodeDetailActivity" />
+        <activity android:name=".ui.MusicPlayerActivity" />
+
+        <!-- PROVIDERS -->
         <provider
             android:name=".db.PodcastProvider"
             android:authorities="br.ufpe.cin.if710.podcast.feed"
             android:enabled="true"
             android:exported="true" />
 
-        <activity android:name=".ui.EpisodeDetailActivity" />
-
-        <service
-            android:name=".services.DownloadXMLIntentService"
-            android:exported="false" />
-
+        <!-- BROADCAST RECEIVERS -->
         <receiver
             android:name=".receivers.MyReceiver"
+            android:enabled="true"
+            android:exported="true" />
+
+        <!-- SERVICES -->
+        <service
+            android:name=".services.DownloadIntentService"
+            android:exported="false" />
+
+        <service
+            android:name=".services.MusicPlayerService"
             android:enabled="true"
             android:exported="true" />
 

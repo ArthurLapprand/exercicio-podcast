@@ -14,9 +14,9 @@ import br.ufpe.cin.if710.podcast.R;
 import br.ufpe.cin.if710.podcast.applications.MyApplication;
 import br.ufpe.cin.if710.podcast.ui.MainActivity;
 
-import static br.ufpe.cin.if710.podcast.services.DownloadXMLIntentService.BROADCAST_TYPE;
-import static br.ufpe.cin.if710.podcast.services.DownloadXMLIntentService.PODCAST_DOWNLOADED_BROADCAST;
-import static br.ufpe.cin.if710.podcast.services.DownloadXMLIntentService.GET_DATA_BROADCAST;
+import static br.ufpe.cin.if710.podcast.services.DownloadIntentService.BROADCAST_TYPE;
+import static br.ufpe.cin.if710.podcast.services.DownloadIntentService.PODCAST_DOWNLOADED_BROADCAST;
+import static br.ufpe.cin.if710.podcast.services.DownloadIntentService.GET_DATA_BROADCAST;
 
 public class MyReceiver extends BroadcastReceiver {
 
@@ -46,7 +46,6 @@ public class MyReceiver extends BroadcastReceiver {
                 sendNotification();
                 break;
             case PODCAST_DOWNLOADED_BROADCAST:
-                changeButtonToReady();
                 break;
             default:
                 Toast.makeText(context, "Error: wrong broadcast type!", Toast.LENGTH_SHORT).show();
@@ -62,7 +61,7 @@ public class MyReceiver extends BroadcastReceiver {
                 .setAutoCancel(true)
                 .setContentTitle(contentTitle)
                 .setContentText(contentText)
-                .setPriority(NotificationCompat.PRIORITY_HIGH);
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
 
         // Creates an explicit intent for MainActivity
         Intent resultIntent = new Intent(context, MainActivity.class);
@@ -84,10 +83,6 @@ public class MyReceiver extends BroadcastReceiver {
                 );
         mNotificationBuilder.setContentIntent(resultPendingIntent);
         mNotificationManager.notify(MY_NOTIFICATION_ID, mNotificationBuilder.build());
-    }
-
-    private void changeButtonToReady() {
-
     }
 
 }

@@ -26,6 +26,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="0"
+            android:textSize="14sp"
             android:text=""
             android:backgroundTint="@color/highlighted"
             android:textColor="@color/app_dark_background" />

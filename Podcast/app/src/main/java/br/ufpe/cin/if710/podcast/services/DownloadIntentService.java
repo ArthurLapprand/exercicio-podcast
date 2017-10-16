@@ -38,13 +38,13 @@ import br.ufpe.cin.if710.podcast.ui.SettingsActivity;
 import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_DATE;
 import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_DESC;
 import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_DOWNLOAD_LINK;
+import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_DOWNLOAD_STATE;
 import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_FILE_URI;
-import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_IS_DOWNLOADING;
 import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_LINK;
 import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_LIST_URI;
 import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_TITLE;
 
-public class DownloadXMLIntentService extends IntentService implements PermissionListener {
+public class DownloadIntentService extends IntentService implements PermissionListener {
 
     public static final String BROADCAST_ACTION = "br.ufpe.cin.if710.broadcasts";
 
@@ -62,22 +62,22 @@ public class DownloadXMLIntentService extends IntentService implements Permissio
     // Service download variables
     private String downloadLink;
 
-    public DownloadXMLIntentService() {
-        super("DownloadXMLIntentService");
+    public DownloadIntentService() {
+        super("DownloadIntentService");
     }
 
     public static void startActionGetData(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(SettingsActivity.FEED_LINK, MODE_PRIVATE);
         String feedLink = sharedPreferences.getString(SettingsActivity.FEED_LINK, context.getResources().getString(R.string.feed_link));
 
-        Intent intent = new Intent(context, DownloadXMLIntentService.class);
+        Intent intent = new Intent(context, DownloadIntentService.class);
         intent.setAction(ACTION_GET_DATA);
         intent.putExtra(GET_DATA_PARAM1, feedLink);
         context.startService(intent);
     }
 
     public static void startActionDownloadPodcast(Context context, String downloadLink) {
-        Intent intent = new Intent(context, DownloadXMLIntentService.class);
+        Intent intent = new Intent(context, DownloadIntentService.class);
         intent.setAction(ACTION_DOWNLOAD_PODCAST);
         intent.putExtra(DOWNLOAD_PODCAST_PARAM1, downloadLink);
         context.startService(intent);
@@ -114,7 +114,6 @@ public class DownloadXMLIntentService extends IntentService implements Permissio
             contentValues.put(EPISODE_DATE, item.getPubDate());
             contentValues.put(EPISODE_DESC, item.getDescription());
             contentValues.put(EPISODE_DOWNLOAD_LINK, item.getDownloadLink());
-//            contentValues.put(EPISODE_IS_DOWNLOADING, 0);
 
             // If item doesn't exist, insert it
             if (contentResolver.update(
@@ -187,7 +186,7 @@ public class DownloadXMLIntentService extends IntentService implements Permissio
             @Override
             public void run() {
                 ContentValues contentValues = new ContentValues();
-                contentValues.put(EPISODE_IS_DOWNLOADING, 1);
+                contentValues.put(EPISODE_DOWNLOAD_STATE, 1);
                 getContentResolver().update(
                         EPISODE_LIST_URI,
                         contentValues,
@@ -245,7 +244,7 @@ public class DownloadXMLIntentService extends IntentService implements Permissio
                 String path = "file://" + out.getAbsolutePath();
                 ContentValues contentValues = new ContentValues();
                 contentValues.put(EPISODE_FILE_URI, path);
-                contentValues.put(EPISODE_IS_DOWNLOADING, 2);
+                contentValues.put(EPISODE_DOWNLOAD_STATE, 2);
                 getContentResolver().update(
                         EPISODE_LIST_URI,
                         contentValues,
@@ -253,9 +252,11 @@ public class DownloadXMLIntentService extends IntentService implements Permissio
                         new String[]{downloadLink}
                 );
 
-                Intent broadcastIntent = new Intent(getApplicationContext(), MyReceiver.class);
+                Intent broadcastIntent = new Intent(BROADCAST_ACTION);
                 broadcastIntent.putExtra(BROADCAST_TYPE, PODCAST_DOWNLOADED_BROADCAST);
-                getApplicationContext().sendBroadcast(broadcastIntent);
+                LocalBroadcastManager
+                        .getInstance(getApplicationContext())
+                        .sendBroadcast(broadcastIntent);
             }
         } catch (IOException e) {
             e.printStackTrace();

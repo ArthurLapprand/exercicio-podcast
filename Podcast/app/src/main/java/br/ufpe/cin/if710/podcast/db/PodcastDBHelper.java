@@ -35,7 +35,8 @@ class PodcastDBHelper extends SQLiteOpenHelper {
                     + EPISODE_DESC + " TEXT NOT NULL, "
                     + EPISODE_DOWNLOAD_LINK + " TEXT NOT NULL, "
                     + EPISODE_FILE_URI + " TEXT, "
-                    + EPISODE_IS_DOWNLOADING + " INTEGER)";
+                    + EPISODE_TIMESTAMP + " INTEGER, "
+                    + EPISODE_DOWNLOAD_STATE + " INTEGER)";
 
 
     @Override

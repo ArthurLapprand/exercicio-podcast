@@ -8,18 +8,18 @@ import java.util.ArrayList;
 
 public class NewItemFeed extends ItemFeed {
 
-    private int downloading;
+    private int downloadState;
 
     public NewItemFeed(String title, String link, String pubDate,
                        String description, String downloadLink,
-                       String downloadUri, int isDownloading) {
+                       String downloadUri, int downloading) {
         super(title, link, pubDate, description, downloadLink, downloadUri);
-        this.downloading = isDownloading;
+        this.downloadState = downloading;
     }
 
     public NewItemFeed(String[] info, int downloading) {
         super(info[0], info[1], info[2], info[3], info[4], info[5]);
-        this.downloading = downloading;
+        this.downloadState = downloading;
     }
 
     public ArrayList<String> getDetails() {
@@ -31,11 +31,11 @@ public class NewItemFeed extends ItemFeed {
         return details;
     }
 
-    public int isDownloading() {
-        return downloading;
+    public int getDownloadState() {
+        return downloadState;
     }
 
-    public void setDownloading(int downloading) {
-        this.downloading = downloading;
+    public void setDownloadState(int downloadState) {
+        this.downloadState = downloadState;
     }
 }

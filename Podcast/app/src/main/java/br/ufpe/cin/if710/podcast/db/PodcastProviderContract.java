@@ -14,21 +14,23 @@ public class PodcastProviderContract {
     final static String DATABASE_TABLE = "episodes";
 
     final static String _ID = "_id";
-    public final static String EPISODE_TITLE = "title";
-    public final static String EPISODE_DATE = "pubDate";
-    public final static String EPISODE_LINK = "link";
-    public final static String EPISODE_DESC = "description";
-    public final static String EPISODE_DOWNLOAD_LINK = "downloadLink";
-    public final static String EPISODE_FILE_URI = "downloadUri";
-    public final static String EPISODE_IS_DOWNLOADING = "isDownloading";
+    public static final String EPISODE_TITLE = "title";
+    public static final String EPISODE_DATE = "pubDate";
+    public static final String EPISODE_LINK = "link";
+    public static final String EPISODE_DESC = "description";
+    public static final String EPISODE_DOWNLOAD_LINK = "downloadLink";
+    public static final String EPISODE_FILE_URI = "downloadUri";
+    public static final String EPISODE_TIMESTAMP = "timestamp";
+    public static final String EPISODE_DOWNLOAD_STATE = "getDownloadState";
 
-
+    // Columns for general query
     public final static String[] COLUMNS = {
             _ID, EPISODE_TITLE, EPISODE_DATE, EPISODE_LINK,
             EPISODE_DESC, EPISODE_DOWNLOAD_LINK, EPISODE_FILE_URI,
-            EPISODE_IS_DOWNLOADING
+            EPISODE_DOWNLOAD_STATE, EPISODE_TIMESTAMP
     };
 
+    // Column names for cursor iteration
     public final static String[] INFO_COLUMNS = {
             EPISODE_TITLE, EPISODE_LINK, EPISODE_DATE,
             EPISODE_DESC, EPISODE_DOWNLOAD_LINK, EPISODE_FILE_URI

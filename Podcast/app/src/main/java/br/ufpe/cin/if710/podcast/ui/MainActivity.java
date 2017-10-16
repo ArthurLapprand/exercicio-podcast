@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -19,17 +20,17 @@ import java.util.List;
 
 import br.ufpe.cin.if710.podcast.R;
 import br.ufpe.cin.if710.podcast.domain.NewItemFeed;
-import br.ufpe.cin.if710.podcast.services.DownloadXMLIntentService;
+import br.ufpe.cin.if710.podcast.services.DownloadIntentService;
 import br.ufpe.cin.if710.podcast.ui.adapter.XmlFeedAdapter;
 
 import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.COLUMNS;
-import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_IS_DOWNLOADING;
+import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_DOWNLOAD_STATE;
 import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_LIST_URI;
 import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.INFO_COLUMNS;
-import static br.ufpe.cin.if710.podcast.services.DownloadXMLIntentService.BROADCAST_ACTION;
-import static br.ufpe.cin.if710.podcast.services.DownloadXMLIntentService.BROADCAST_TYPE;
-import static br.ufpe.cin.if710.podcast.services.DownloadXMLIntentService.PODCAST_DOWNLOADED_BROADCAST;
-import static br.ufpe.cin.if710.podcast.services.DownloadXMLIntentService.GET_DATA_BROADCAST;
+import static br.ufpe.cin.if710.podcast.services.DownloadIntentService.BROADCAST_ACTION;
+import static br.ufpe.cin.if710.podcast.services.DownloadIntentService.BROADCAST_TYPE;
+import static br.ufpe.cin.if710.podcast.services.DownloadIntentService.GET_DATA_BROADCAST;
+import static br.ufpe.cin.if710.podcast.services.DownloadIntentService.PODCAST_DOWNLOADED_BROADCAST;
 
 public class MainActivity extends Activity {
 
@@ -89,8 +90,10 @@ public class MainActivity extends Activity {
                 break;
 
             default:
+                // Update list from database
+                updatePodcastList();
                 // Calls service to download podcasts info
-                DownloadXMLIntentService.startActionGetData(this);
+                DownloadIntentService.startActionGetData(this);
                 break;
         }
 
@@ -118,9 +121,8 @@ public class MainActivity extends Activity {
 
             switch (bcType) {
                 case GET_DATA_BROADCAST:
-                    updatePodcastList();
-                    break;
                 case PODCAST_DOWNLOADED_BROADCAST:
+                    updatePodcastList();
                     break;
                 default:
                     Toast.makeText(context, "Error: wrong broadcast type!", Toast.LENGTH_SHORT).show();
@@ -131,39 +133,52 @@ public class MainActivity extends Activity {
     };
 
     private void updatePodcastList() {
+        new updateTask().execute();
+    }
 
-        Cursor c = getContentResolver().query(
-                EPISODE_LIST_URI,
-                COLUMNS,
-                null, null, null
-        );
+    private class updateTask extends AsyncTask<Void, Void, List<NewItemFeed>> {
 
-        List<NewItemFeed> feed = new ArrayList<>();
-        if (c != null) {
-            String[] info = new String[c.getColumnNames().length];
+        @Override
+        protected List<NewItemFeed> doInBackground(Void... params) {
+            Cursor c = getContentResolver().query(
+                    EPISODE_LIST_URI,
+                    COLUMNS,
+                    null, null, null
+            );
 
-            int i, j;
-            int isDownloading;
-            if (c.moveToFirst()) {
-                do {
-                    j = 0;
-                    for (String column : INFO_COLUMNS) {
-                        i = c.getColumnIndex(column);
-                        info[j++] = c.getString(i);
-                    }
-                    i = c.getColumnIndex(EPISODE_IS_DOWNLOADING);
-                    isDownloading = c.getInt(i);
-                    feed.add(new NewItemFeed(info, isDownloading));
-                } while (c.moveToNext());
+            List<NewItemFeed> feed = new ArrayList<>();
+            if (c != null) {
+                String[] info = new String[c.getColumnNames().length];
+                int i, j;
+                int isDownloading;
+                if (c.moveToFirst()) {
+                    do {
+                        j = 0;
+                        for (String column : INFO_COLUMNS) {
+                            i = c.getColumnIndex(column);
+                            info[j++] = c.getString(i);
+                        }
+                        i = c.getColumnIndex(EPISODE_DOWNLOAD_STATE);
+                        isDownloading = c.getInt(i);
+                        feed.add(new NewItemFeed(info, isDownloading));
+                    } while (c.moveToNext());
+                }
+                c.close();
             }
+            return feed;
+        }
 
-            c.close();
-
-            //Adapter Personalizado
-            XmlFeedAdapter adapter = new XmlFeedAdapter(getApplicationContext(), R.layout.itemlista, feed);
-            //atualizar o list view
-            items.setAdapter(adapter);
-            items.setTextFilterEnabled(true);
+        @Override
+        protected void onPostExecute(List<NewItemFeed> feed) {
+            if (feed.isEmpty())
+                Toast.makeText(getApplicationContext(), "No podcasts!", Toast.LENGTH_SHORT).show();
+            else {
+                //Adapter Personalizado
+                XmlFeedAdapter adapter = new XmlFeedAdapter(getApplicationContext(), R.layout.itemlista, feed);
+                //atualizar o list view
+                items.setAdapter(adapter);
+                items.setTextFilterEnabled(true);
+            }
         }
     }
 
