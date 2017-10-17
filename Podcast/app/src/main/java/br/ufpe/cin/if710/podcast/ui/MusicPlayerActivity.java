@@ -10,6 +10,7 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import br.ufpe.cin.if710.podcast.R;
@@ -32,9 +33,15 @@ public class MusicPlayerActivity extends Activity {
         isBound = false;
 
         String uriKey = getString(R.string.podcast_uri);
+        String titlekey = getString(R.string.podcast_title);
 
         // Check if not returning from notification
         if (getIntent().hasExtra(uriKey)) {
+
+            String podcastTitle =
+                    getIntent().getStringExtra(titlekey);
+
+            ((TextView) findViewById(R.id.now_playing_label)).setText(getString(R.string.now_playing, podcastTitle));
 
             String podcastUriStr =
                     getIntent().getStringExtra(uriKey);

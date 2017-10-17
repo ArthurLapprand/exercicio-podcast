@@ -87,6 +87,7 @@ public class XmlFeedAdapter extends ArrayAdapter<NewItemFeed> {
                     public void onClick(View v) {
                         Intent intent = new Intent(getContext(), MusicPlayerActivity.class);
                         intent.putExtra(getContext().getString(R.string.podcast_uri), item.getDownloadUri());
+                        intent.putExtra(getContext().getString(R.string.podcast_title), item.getTitle());
                         getContext().startActivity(intent);
                     }
                 });

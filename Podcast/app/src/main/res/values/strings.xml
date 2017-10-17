@@ -22,4 +22,6 @@
     <string name="description">Description</string>
     <string name="details">details</string>
     <string name="podcast_uri">podcast_uri</string>
+    <string name="podcast_title">podcast_title</string>
+    <string name="now_playing">Now Playing: %s</string>
 </resources>
