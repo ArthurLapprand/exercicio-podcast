@@ -151,7 +151,7 @@ public class DownloadIntentService extends IntentService implements PermissionLi
                 .check();
     }
 
-    private byte[] downloadFileBytes(String urlStr) throws IOException {
+    public static byte[] downloadFileBytes(String urlStr) throws IOException {
         InputStream in = null;
         byte[] response = null;
         try {

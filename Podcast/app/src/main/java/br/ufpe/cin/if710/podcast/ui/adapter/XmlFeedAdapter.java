@@ -73,6 +73,7 @@ public class XmlFeedAdapter extends ArrayAdapter<NewItemFeed> {
             holder.item_action.setEnabled(false);
             setIcon(holder.item_action, dlIcon);
             holder.item_action.setText(R.string.action_downloading);
+            holder.item_action.setContentDescription("downloadingState");
         }
 
         // If DOWNLOADED, enable button and set play icon
@@ -82,6 +83,7 @@ public class XmlFeedAdapter extends ArrayAdapter<NewItemFeed> {
             } else {
                 holder.item_action.setEnabled(true);
                 setIcon(holder.item_action, playIcon);
+                holder.item_action.setContentDescription("playState");
                 holder.item_action.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -99,6 +101,7 @@ public class XmlFeedAdapter extends ArrayAdapter<NewItemFeed> {
             holder.item_action.setEnabled(true);
             holder.item_action.setText("");
             setIcon(holder.item_action, dlIcon);
+            holder.item_action.setContentDescription("toDownloadState");
             holder.item_action.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
