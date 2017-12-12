@@ -1,18 +1,11 @@
 package br.ufpe.cin.if710.podcast;
 
-/**
- * Created by danil on 08/12/2017.
- */
-
-import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
 import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
 import android.support.test.uiautomator.By;
 import android.support.test.uiautomator.UiDevice;
 import android.support.test.uiautomator.UiObject;
-import android.support.test.uiautomator.UiObject2;
 import android.support.test.uiautomator.UiObjectNotFoundException;
 import android.support.test.uiautomator.UiScrollable;
 import android.support.test.uiautomator.UiSelector;
@@ -21,26 +14,25 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
- * Instrumentation test, which will execute on an Android device.
- *
- * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
+ * Created by danil on 12/12/2017.
  */
-@RunWith(AndroidJUnit4.class)
-public class PodcastInstrumentedTest {
+
+public class NotificationTest {
+
     private static final String APP_PACKAGE = "br.ufpe.cin.if710.podcast";
     private static final int LAUNCH_TIMEOUT = 5000;
     private UiDevice mDevice;
 
     @BeforeClass
-    public void startMainActivityFromHomeScreen() {
+    public void startMainActivityFromHomeScreen() throws UiObjectNotFoundException, InterruptedException {
         mDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
         mDevice.pressHome();
         String launcherPackage = mDevice.getLauncherPackageName();
@@ -51,10 +43,11 @@ public class PodcastInstrumentedTest {
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
         context.startActivity(intent);
         mDevice.wait(Until.hasObject(By.pkg(APP_PACKAGE).depth(0)), LAUNCH_TIMEOUT);
+        downloadEpisode();
+        playEpisode();
     }
 
-    @Test
-    public void downloadEpisodeTest() throws UiObjectNotFoundException, InterruptedException {
+    public void downloadEpisode() throws UiObjectNotFoundException, InterruptedException {
         UiScrollable listPodcast = (UiScrollable) mDevice.findObject(new UiSelector().className(ListView.class.getName()));
         UiObject downloadButtonEpisode = null;
         UiObject linearLayoutOuter = null;
@@ -90,7 +83,7 @@ public class PodcastInstrumentedTest {
     }
 
     @Test
-    public void playEpisodeTest() throws UiObjectNotFoundException {
+    public void playEpisode() throws UiObjectNotFoundException {
         UiScrollable listPodcast = (UiScrollable) mDevice.findObject(new UiSelector().className(ListView.class.getName()));
         UiObject playButtonEpisode = null;
         UiObject linearLayoutOuter = null;
