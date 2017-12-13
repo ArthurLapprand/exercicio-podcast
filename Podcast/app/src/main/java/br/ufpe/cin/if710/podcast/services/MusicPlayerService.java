@@ -18,6 +18,9 @@ import java.io.File;
 
 import br.ufpe.cin.if710.podcast.R;
 import br.ufpe.cin.if710.podcast.applications.MyApplication;
+import br.ufpe.cin.if710.podcast.db.room.AppDatabase;
+import br.ufpe.cin.if710.podcast.db.room.ItemFeedEntity;
+import br.ufpe.cin.if710.podcast.domain.ItemFeed;
 import br.ufpe.cin.if710.podcast.ui.MusicPlayerActivity;
 
 import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_DOWNLOAD_STATE;
@@ -81,15 +84,21 @@ public class MusicPlayerService extends Service {
                     if (!podcast.delete()) {
                         Toast.makeText(getApplicationContext(), "Error while deleting file!", Toast.LENGTH_SHORT).show();
                     } else {
-                        ContentValues contentValues = new ContentValues();
-                        contentValues.put(EPISODE_FILE_URI, "");
-                        contentValues.put(EPISODE_DOWNLOAD_STATE, 0);
-                        getContentResolver().update(
-                                EPISODE_LIST_URI,
-                                contentValues,
-                                EPISODE_FILE_URI + " =? ",
-                                new String[]{newUriStr}
-                        );
+                        MyApplication app = (MyApplication) getApplicationContext();
+                        AppDatabase db = app.getDb();
+                        ItemFeedEntity item = db.itemFeedDAO().getEpisodeFromFileURI(newUriStr);
+                        item.setEpisodeFileUri("");
+                        item.setEpisodeDownloadState(0);
+                        db.itemFeedDAO().updateIteemFeed(item);
+//                        ContentValues contentValues = new ContentValues();
+//                        contentValues.put(EPISODE_FILE_URI, "");
+//                        contentValues.put(EPISODE_DOWNLOAD_STATE, 0);
+//                        getContentResolver().update(
+//                                EPISODE_LIST_URI,
+//                                contentValues,
+//                                EPISODE_FILE_URI + " =? ",
+//                                new String[]{newUriStr}
+//                        );
 
                         if (mediaPlayer != null) {
                             mediaPlayer.reset();
@@ -105,18 +114,21 @@ public class MusicPlayerService extends Service {
 
     private int getPosition() {
         int pos = 0;
-
-        Cursor c = getContentResolver().query(
-                EPISODE_LIST_URI,
-                new String[] {EPISODE_TIMESTAMP},
-                EPISODE_FILE_URI + " =? ",
-                new String[] {currentPodcastUriStr}, null
-        );
-
-        if (c != null && c.moveToFirst()) {
-            pos = c.getInt(c.getColumnIndex(EPISODE_TIMESTAMP));
-            c.close();
-        }
+        MyApplication app = (MyApplication) getApplicationContext();
+        AppDatabase db = app.getDb();
+        ItemFeedEntity item = db.itemFeedDAO().getEpisodeFromFileURI(currentPodcastUriStr);
+        pos =  item.getEpisodeTimestamp();
+//        Cursor c = getContentResolver().query(
+//                EPISODE_LIST_URI,
+//                new String[] {EPISODE_TIMESTAMP},
+//                EPISODE_FILE_URI + " =? ",
+//                new String[] {currentPodcastUriStr}, null
+//        );
+//
+//        if (c != null && c.moveToFirst()) {
+//            pos = c.getInt(c.getColumnIndex(EPISODE_TIMESTAMP));
+//            c.close();
+//        }
 
         return pos;
     }
@@ -135,15 +147,21 @@ public class MusicPlayerService extends Service {
     }
 
     private void savePosition() {
+
         int pos = mediaPlayer.getCurrentPosition();
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(EPISODE_TIMESTAMP, pos);
-        getContentResolver().update(
-                EPISODE_LIST_URI,
-                contentValues,
-                EPISODE_FILE_URI + " =? ",
-                new String[]{currentPodcastUriStr}
-        );
+        MyApplication app = (MyApplication) getApplicationContext();
+        AppDatabase db = app.getDb();
+        ItemFeedEntity item = db.itemFeedDAO().getEpisodeFromFileURI(currentPodcastUriStr);
+        item.setEpisodeTimestamp(pos);
+        db.itemFeedDAO().updateIteemFeed(item);
+//        ContentValues contentValues = new ContentValues();
+//        contentValues.put(EPISODE_TIMESTAMP, pos);
+//        getContentResolver().update(
+//                EPISODE_LIST_URI,
+//                contentValues,
+//                EPISODE_FILE_URI + " =? ",
+//                new String[]{currentPodcastUriStr}
+//        );
     }
 
     @Override

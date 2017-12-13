@@ -4,6 +4,10 @@ import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
 
+import java.util.UUID;
+
+import br.ufpe.cin.if710.podcast.domain.NewItemFeed;
+
 import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_DATE;
 import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_DESC;
 import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_DOWNLOAD_LINK;
@@ -19,8 +23,8 @@ import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_TITLE
 @Entity(tableName = "episodes")
 public class ItemFeedEntity {
 
-    @PrimaryKey(autoGenerate = true)
-    private int id;
+    @PrimaryKey()
+    private UUID id;
 
     @ColumnInfo(name=EPISODE_TITLE)
     private String episodeTitle;
@@ -50,11 +54,22 @@ public class ItemFeedEntity {
 
     }
 
-    public int getId() {
+    public ItemFeedEntity(NewItemFeed item){
+        this.id = UUID.randomUUID();
+        this.episodeDate = item.getPubDate();
+        this.episodeDesc = item.getDescription();
+        this.episodeDownloadLink = item.getDownloadLink();
+        this.episodeFileUri = item.getDownloadUri();
+        this.episodeDownloadState = item.getDownloadState();
+        this.episodeTimestamp = 0;
+        this.episodeTitle = item.getTitle();
+    }
+
+    public UUID getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

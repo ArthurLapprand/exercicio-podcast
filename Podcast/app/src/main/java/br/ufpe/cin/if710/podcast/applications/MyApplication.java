@@ -4,11 +4,13 @@ import android.app.Activity;
 import android.app.Application;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.arch.persistence.room.Room;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
 
 import br.ufpe.cin.if710.podcast.R;
+import br.ufpe.cin.if710.podcast.db.room.AppDatabase;
 
 /**
  * Created by Lapp on 08/10/2017.
@@ -20,13 +22,18 @@ public class MyApplication extends Application {
 
     private boolean areActivitiesCreated;
     private boolean isInBackground;
-
+    private AppDatabase db;
     @Override
     public void onCreate() {
         super.onCreate();
         createNotificationChannel();
         areActivitiesCreated = false;
+        this.db = Room.databaseBuilder(this,AppDatabase.class,"podcast-database").build();
         checkActivityState();
+    }
+
+    public AppDatabase getDb() {
+        return db;
     }
 
     private void createNotificationChannel() {

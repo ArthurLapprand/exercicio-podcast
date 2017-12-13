@@ -30,6 +30,8 @@ import java.util.List;
 
 import br.ufpe.cin.if710.podcast.R;
 import br.ufpe.cin.if710.podcast.applications.MyApplication;
+import br.ufpe.cin.if710.podcast.db.room.AppDatabase;
+import br.ufpe.cin.if710.podcast.db.room.ItemFeedEntity;
 import br.ufpe.cin.if710.podcast.domain.NewItemFeed;
 import br.ufpe.cin.if710.podcast.domain.XmlFeedParser;
 import br.ufpe.cin.if710.podcast.receivers.MyReceiver;
@@ -103,29 +105,35 @@ public class DownloadIntentService extends IntentService implements PermissionLi
 
     private void handleActionGetData(String feedLink) throws IOException, XmlPullParserException {
 
-        ContentResolver contentResolver = getContentResolver();
-        ContentValues contentValues = new ContentValues();
+//        ContentResolver contentResolver = getContentResolver();
+//        ContentValues contentValues = new ContentValues();
         List<NewItemFeed> itemList = XmlFeedParser.parse(getRssFeed(feedLink));
+        List<ItemFeedEntity> itemEntityList = new ArrayList<>();
 
-        for (NewItemFeed item : itemList) {
-            contentValues.clear();
-            contentValues.put(EPISODE_TITLE, item.getTitle());
-            contentValues.put(EPISODE_LINK, item.getLink());
-            contentValues.put(EPISODE_DATE, item.getPubDate());
-            contentValues.put(EPISODE_DESC, item.getDescription());
-            contentValues.put(EPISODE_DOWNLOAD_LINK, item.getDownloadLink());
-
-            // If item doesn't exist, insert it
-            if (contentResolver.update(
-                    EPISODE_LIST_URI,
-                    contentValues,
-                    EPISODE_DOWNLOAD_LINK + " =? ",
-                    new String[]{item.getDownloadLink()}
-            ) == 0) contentResolver.insert(EPISODE_LIST_URI, contentValues);
-
+        for(NewItemFeed i : itemList){
+            ItemFeedEntity ie = new ItemFeedEntity(i);
+            itemEntityList.add(ie);
         }
-
         MyApplication app = (MyApplication) (getApplicationContext());
+        AppDatabase db = app.getDb();
+        db.itemFeedDAO().insertAll((ItemFeedEntity[]) itemEntityList.toArray());
+//        for (NewItemFeed item : itemList) {
+//            contentValues.clear();
+//            contentValues.put(EPISODE_TITLE, item.getTitle());
+//            contentValues.put(EPISODE_LINK, item.getLink());
+//            contentValues.put(EPISODE_DATE, item.getPubDate());
+//            contentValues.put(EPISODE_DESC, item.getDescription());
+//            contentValues.put(EPISODE_DOWNLOAD_LINK, item.getDownloadLink());
+//
+//            // If item doesn't exist, insert it
+//            if (contentResolver.update(
+//                    EPISODE_LIST_URI,
+//                    contentValues,
+//                    EPISODE_DOWNLOAD_LINK + " =? ",
+//                    new String[]{item.getDownloadLink()}
+//            ) == 0) contentResolver.insert(EPISODE_LIST_URI, contentValues);
+//
+//        }
 
         if (app.isInBackground() || !app.areActivitiesCreated()) {
             Intent broadcastIntent = new Intent(getApplicationContext(), MyReceiver.class);
@@ -185,14 +193,19 @@ public class DownloadIntentService extends IntentService implements PermissionLi
         new Thread (new Runnable() {
             @Override
             public void run() {
-                ContentValues contentValues = new ContentValues();
-                contentValues.put(EPISODE_DOWNLOAD_STATE, 1);
-                getContentResolver().update(
-                        EPISODE_LIST_URI,
-                        contentValues,
-                        EPISODE_DOWNLOAD_LINK + " =? ",
-                        new String[]{downloadLink}
-                );
+                MyApplication ab = (MyApplication) getApplicationContext();
+                AppDatabase db = ab.getDb();
+                ItemFeedEntity item = db.itemFeedDAO().getEpisodeFromDownloadLink(downloadLink);
+                item.setEpisodeDownloadState(1);
+                db.itemFeedDAO().updateIteemFeed(item);
+//                ContentValues contentValues = new ContentValues();
+//                contentValues.put(EPISODE_DOWNLOAD_STATE, 1);
+//                getContentResolver().update(
+//                        EPISODE_LIST_URI,
+//                        contentValues,
+//                        EPISODE_DOWNLOAD_LINK + " =? ",
+//                        new String[]{downloadLink}
+//                );
 
                 startDownload();
             }
@@ -242,15 +255,21 @@ public class DownloadIntentService extends IntentService implements PermissionLi
                 connection.disconnect();
 
                 String path = "file://" + out.getAbsolutePath();
-                ContentValues contentValues = new ContentValues();
-                contentValues.put(EPISODE_FILE_URI, path);
-                contentValues.put(EPISODE_DOWNLOAD_STATE, 2);
-                getContentResolver().update(
-                        EPISODE_LIST_URI,
-                        contentValues,
-                        EPISODE_DOWNLOAD_LINK + " =? ",
-                        new String[]{downloadLink}
-                );
+                MyApplication app = (MyApplication) getApplicationContext();
+                AppDatabase db = app.getDb();
+                ItemFeedEntity item = db.itemFeedDAO().getEpisodeFromDownloadLink(downloadLink);
+                item.setEpisodeFileUri(path);
+                item.setEpisodeDownloadState(2);
+                db.itemFeedDAO().updateIteemFeed(item);
+//                ContentValues contentValues = new ContentValues();
+//                contentValues.put(EPISODE_FILE_URI, path);
+//                contentValues.put(EPISODE_DOWNLOAD_STATE, 2);
+//                getContentResolver().update(
+//                        EPISODE_LIST_URI,
+//                        contentValues,
+//                        EPISODE_DOWNLOAD_LINK + " =? ",
+//                        new String[]{downloadLink}
+//                );
 
                 Intent broadcastIntent = new Intent(BROADCAST_ACTION);
                 broadcastIntent.putExtra(BROADCAST_TYPE, PODCAST_DOWNLOADED_BROADCAST);
