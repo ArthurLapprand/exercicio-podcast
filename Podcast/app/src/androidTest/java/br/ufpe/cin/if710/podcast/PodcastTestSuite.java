@@ -9,7 +9,7 @@ import org.junit.runners.Suite;
 /**
  * Created by danil on 12/12/2017.
  */
-@RunWith(AndroidJUnit4.class)
+@RunWith(Suite.class)
 @Suite.SuiteClasses({DownloadEpisodeTest.class,PlayEpisodeTest.class,NotificationTest.class})
 public class PodcastTestSuite {
 }

@@ -14,6 +14,7 @@ import android.support.test.uiautomator.Until;
 import android.widget.Button;
 import android.widget.ListView;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,7 +33,7 @@ public class PlayEpisodeTest {
     private static final int LAUNCH_TIMEOUT = 5000;
     private UiDevice mDevice;
 
-    @BeforeClass
+    @Before
     public void startMainActivityFromHomeScreen() throws InterruptedException, UiObjectNotFoundException {
         mDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
         mDevice.pressHome();
@@ -44,70 +45,107 @@ public class PlayEpisodeTest {
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
         context.startActivity(intent);
         mDevice.wait(Until.hasObject(By.pkg(APP_PACKAGE).depth(0)), LAUNCH_TIMEOUT);
-        downloadEpisode();
+        if(!checkPlayableEpisode()){
+            downloadEpisode();
+        }
     }
 
-    //TO ASSERT THAT A EPISODE IS DOWNLOADED
-    public void downloadEpisode() throws UiObjectNotFoundException, InterruptedException {
-        UiScrollable listPodcast = (UiScrollable) mDevice.findObject(new UiSelector().className(ListView.class.getName()));
-        UiObject downloadButtonEpisode = null;
-        UiObject linearLayoutOuter = null;
-        UiObject linearLayoutInner = null;
-        int i = 0;
-        do {
-            for (i = 0; i < listPodcast.getChildCount(); i++) {
-                linearLayoutOuter = listPodcast.getChild(new UiSelector().index(i));
-                linearLayoutInner = linearLayoutOuter.getChild(new UiSelector().index(0));
-                try {
-                    downloadButtonEpisode = linearLayoutInner.getChild(new UiSelector().className(Button.class.getName()).resourceId("item_action").descriptionContains("toDownloadState"));
-                    if (downloadButtonEpisode.exists()) {
-                        System.out.println("Found download button at position: " + i);
-                        break;
-                    }
-                } catch (UiObjectNotFoundException e) {
-                    continue;
-                }
-            }
-        }while(downloadButtonEpisode == null && listPodcast.scrollForward());
-        assertNotNull("Did not found a download button", downloadButtonEpisode);
-        downloadButtonEpisode.click();
-        wait(500);
-        assertFalse("The button still exists after clicking at it", downloadButtonEpisode.exists());
-        //Getting the altered button to check if it is downloading
-        UiObject downloadingButtonEpisode = null;
-        downloadingButtonEpisode = linearLayoutInner.getChild(new UiSelector().className(Button.class.getName()).resourceId("item_action").descriptionContains("downloadingState"));
-        assertTrue("The episode is not being downloaded", downloadingButtonEpisode.exists());
-        //Waiting for the download to happen
-        wait(6 * 60 * 1000);
-        UiObject playButtonEpisode = linearLayoutInner.getChild(new UiSelector().className(Button.class.getName()).resourceId("item_action").description("playState"));
-        assertTrue("The episode is not playable", playButtonEpisode.exists());
-    }
-
-    @Test
-    public void playEpisodeTest() throws UiObjectNotFoundException {
-        UiScrollable listPodcast = (UiScrollable) mDevice.findObject(new UiSelector().className(ListView.class.getName()));
+    public boolean checkPlayableEpisode() throws UiObjectNotFoundException {
+        UiScrollable listPodcast = new UiScrollable(new UiSelector().className(ListView.class.getName()));
+        listPodcast.scrollToBeginning(30);
         UiObject playButtonEpisode = null;
         UiObject linearLayoutOuter = null;
         UiObject linearLayoutInner = null;
         int i = 0;
+        boolean playButtonFound = false;
         do {
             for (i = 0; i < listPodcast.getChildCount(); i++) {
                 linearLayoutOuter = listPodcast.getChild(new UiSelector().index(i));
                 linearLayoutInner = linearLayoutOuter.getChild(new UiSelector().index(0));
                 try {
-                    playButtonEpisode = linearLayoutInner.getChild(new UiSelector().className(Button.class.getName()).resourceId("item_action").descriptionContains("playState"));
-                    if (playButtonEpisode.exists()) {
-                        System.out.println("Found play button at position: " + i);
+                    playButtonEpisode = linearLayoutInner.getChild(new UiSelector().index(1));
+                    if(playButtonEpisode.getContentDescription().equals("playState")){
+                        return true;
+                    }
+//                    playButtonEpisode = linearLayoutInner.getChild(new UiSelector().resourceId("item_action").description("playState"));
+//                    if (playButtonEpisode.exists()) {
+//                        System.out.println(playButtonEpisode.getContentDescription());
+//                        return true;
+//                    }
+                } catch (UiObjectNotFoundException e) {
+                    continue;
+                }
+            }
+        }while(!playButtonFound && listPodcast.scrollForward());
+        return false;
+    }
+
+    //TO ASSERT THAT A EPISODE IS DOWNLOADED
+    public void downloadEpisode() throws UiObjectNotFoundException, InterruptedException {
+        UiScrollable listPodcast= null;
+        UiObject downloadButtonEpisode = null;
+        UiObject linearLayoutOuter = null;
+        UiObject linearLayoutInner = null;
+        int i = 0;
+        boolean downloadButtonFound = false;
+        do {
+            listPodcast = new UiScrollable(new UiSelector().className(ListView.class.getName()));
+            for (i = 0; i < listPodcast.getChildCount(); i++) {
+                linearLayoutOuter = listPodcast.getChild(new UiSelector().index(i));
+                linearLayoutInner = linearLayoutOuter.getChild(new UiSelector().index(0));
+                try {
+                    downloadButtonEpisode = linearLayoutInner.getChild(new UiSelector().index(1));
+                    System.out.println(downloadButtonEpisode.getContentDescription());
+                    if(downloadButtonEpisode.getContentDescription().equals("toDownloadState")){
+                        downloadButtonFound = true;
                         break;
                     }
                 } catch (UiObjectNotFoundException e) {
                     continue;
                 }
             }
-        }while(playButtonEpisode == null && listPodcast.scrollForward());
-        playButtonEpisode.clickAndWaitForNewWindow(1000);
-        UiObject playButton = mDevice.findObject(new UiSelector().className(Button.class.getName()).resourceId("btn_play"));
-        UiObject pauseButton = mDevice.findObject(new UiSelector().className(Button.class.getName()).resourceId("btn_pause"));
+        }while(!downloadButtonFound && listPodcast.scrollForward());
+        assertTrue("Did not found a download button", downloadButtonEpisode.exists());
+        //Getting the altered button to check if it is downloading
+        UiObject downloadingButtonEpisode = null;
+        System.out.println(downloadButtonEpisode.getContentDescription());
+        downloadButtonEpisode.click();
+        downloadingButtonEpisode = mDevice.findObject(new UiSelector().text("DOWNLOADING"));;
+        assertTrue("The episode is not being downloaded", downloadingButtonEpisode.waitForExists(10000));
+        //Waiting for the download to happen
+        UiObject playButtonEpisode = linearLayoutInner.getChild(new UiSelector().description("playState"));
+        assertTrue("The episode is not playable", playButtonEpisode.waitForExists(3*60*1000));
+    }
+
+    @Test
+    public void playEpisodeTest() throws UiObjectNotFoundException {
+        UiScrollable listPodcast = new UiScrollable(new UiSelector().className(ListView.class.getName()));
+        UiObject playButtonEpisode = null;
+        UiObject linearLayoutOuter = null;
+        UiObject linearLayoutInner = null;
+        int i = 0;
+        boolean playEpisodeFound = false;
+        do {
+            for (i = 0; i < listPodcast.getChildCount(); i++) {
+                linearLayoutOuter = listPodcast.getChild(new UiSelector().index(i));
+                linearLayoutInner = linearLayoutOuter.getChild(new UiSelector().index(0));
+                try {
+                    playButtonEpisode = linearLayoutInner.getChild(new UiSelector().index(1));
+                    System.out.println(playButtonEpisode.getContentDescription());
+                    if(playButtonEpisode.getContentDescription().equals("playState")){
+                        playEpisodeFound = true;
+                       break;
+                    }
+                } catch (UiObjectNotFoundException e) {
+                    continue;
+                }
+            }
+        }while(!playEpisodeFound && listPodcast.scrollForward());
+        playButtonEpisode.clickAndWaitForNewWindow(5000);
+        UiObject playButton = mDevice.findObject(new UiSelector().text("Play"));
+        System.out.println(playButton.getText());
+        UiObject pauseButton = mDevice.findObject(new UiSelector().text("Pause"));
+        System.out.println(pauseButton.getText());
         assertTrue("The play button is not displayed", playButton.exists());
         assertTrue("The pause button is not displayed", pauseButton.exists());
     }
