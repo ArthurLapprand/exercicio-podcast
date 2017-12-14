@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Environment;
 import android.os.IBinder;
@@ -67,6 +68,21 @@ public class MusicPlayerService extends Service {
         return START_STICKY;
     }
 
+    private class updateOnCreateAndStart extends AsyncTask<String, Void,Void> {
+
+        @Override
+        protected Void doInBackground(String... strings) {
+            String newUriStr = strings[0];
+            MyApplication app = (MyApplication) getApplicationContext();
+            AppDatabase db = app.getDb();
+            ItemFeedEntity item = db.itemFeedDAO().getEpisodeFromFileURI(newUriStr);
+            item.setEpisodeFileUri("");
+            item.setEpisodeDownloadState(0);
+            db.itemFeedDAO().updateIteemFeed(item);
+            return null;
+        }
+    }
+
     private void createAndStartPlayer(final int startId, final String newUriStr) {
         mediaPlayer = MediaPlayer.create(this, Uri.parse(newUriStr));
         currentPodcastUriStr = newUriStr;
@@ -84,12 +100,6 @@ public class MusicPlayerService extends Service {
                     if (!podcast.delete()) {
                         Toast.makeText(getApplicationContext(), "Error while deleting file!", Toast.LENGTH_SHORT).show();
                     } else {
-                        MyApplication app = (MyApplication) getApplicationContext();
-                        AppDatabase db = app.getDb();
-                        ItemFeedEntity item = db.itemFeedDAO().getEpisodeFromFileURI(newUriStr);
-                        item.setEpisodeFileUri("");
-                        item.setEpisodeDownloadState(0);
-                        db.itemFeedDAO().updateIteemFeed(item);
 //                        ContentValues contentValues = new ContentValues();
 //                        contentValues.put(EPISODE_FILE_URI, "");
 //                        contentValues.put(EPISODE_DOWNLOAD_STATE, 0);
@@ -99,7 +109,7 @@ public class MusicPlayerService extends Service {
 //                                EPISODE_FILE_URI + " =? ",
 //                                new String[]{newUriStr}
 //                        );
-
+                        new updateOnCreateAndStart().execute(newUriStr);
                         if (mediaPlayer != null) {
                             mediaPlayer.reset();
                         }
@@ -108,8 +118,20 @@ public class MusicPlayerService extends Service {
             }
         });
         this.startId = startId;
-        mediaPlayer.seekTo(getPosition());
-        playMusic();
+//        mediaPlayer.seekTo(getPosition());
+//        playMusic();
+    }
+
+    private class getPositionTask extends AsyncTask<String,Integer,Void> {
+
+        @Override
+        protected Void doInBackground(String... strings) {
+            int pos = 0;
+            MyApplication app = (MyApplication) getApplicationContext();
+            AppDatabase db = app.getDb();
+            ItemFeedEntity item = db.itemFeedDAO().getEpisodeFromFileURI(currentPodcastUriStr);
+            pos =  item.getEpisodeTimestamp();
+        }
     }
 
     private int getPosition() {

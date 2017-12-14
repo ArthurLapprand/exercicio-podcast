@@ -109,14 +109,15 @@ public class DownloadIntentService extends IntentService implements PermissionLi
 //        ContentValues contentValues = new ContentValues();
         List<NewItemFeed> itemList = XmlFeedParser.parse(getRssFeed(feedLink));
         List<ItemFeedEntity> itemEntityList = new ArrayList<>();
-
+        ItemFeedEntity[] arrayItemFeed = new ItemFeedEntity[itemList.size()];
         for(NewItemFeed i : itemList){
             ItemFeedEntity ie = new ItemFeedEntity(i);
             itemEntityList.add(ie);
         }
+        arrayItemFeed = itemEntityList.toArray(arrayItemFeed);
         MyApplication app = (MyApplication) (getApplicationContext());
         AppDatabase db = app.getDb();
-        db.itemFeedDAO().insertAll((ItemFeedEntity[]) itemEntityList.toArray());
+        db.itemFeedDAO().insertAll(arrayItemFeed);
 //        for (NewItemFeed item : itemList) {
 //            contentValues.clear();
 //            contentValues.put(EPISODE_TITLE, item.getTitle());

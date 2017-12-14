@@ -2,6 +2,7 @@ package br.ufpe.cin.if710.podcast.ui;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -19,8 +20,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import br.ufpe.cin.if710.podcast.R;
+import br.ufpe.cin.if710.podcast.applications.MyApplication;
+import br.ufpe.cin.if710.podcast.db.room.AppDatabase;
+import br.ufpe.cin.if710.podcast.db.room.ItemFeedEntity;
 import br.ufpe.cin.if710.podcast.domain.NewItemFeed;
 import br.ufpe.cin.if710.podcast.services.DownloadIntentService;
+import br.ufpe.cin.if710.podcast.ui.adapter.RoomXmlFeedAdapter;
 import br.ufpe.cin.if710.podcast.ui.adapter.XmlFeedAdapter;
 
 import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.COLUMNS;
@@ -108,7 +113,8 @@ public class MainActivity extends Activity {
         LocalBroadcastManager.getInstance(this)
                 .unregisterReceiver(MyDynamicReceiver);
 
-        XmlFeedAdapter adapter = (XmlFeedAdapter) items.getAdapter();
+//        XmlFeedAdapter adapter = (XmlFeedAdapter) items.getAdapter();
+        RoomXmlFeedAdapter adapter = (RoomXmlFeedAdapter) items.getAdapter();
         if (adapter != null) adapter.clear();
     }
 
@@ -132,8 +138,10 @@ public class MainActivity extends Activity {
         }
     };
 
-    private void updatePodcastList() {
-        new updateTask().execute();
+    private void updatePodcastList()
+    {
+//        new updateTask().execute();
+        new updateRoomTask().execute();
     }
 
     private class updateTask extends AsyncTask<Void, Void, List<NewItemFeed>> {
@@ -175,6 +183,57 @@ public class MainActivity extends Activity {
             else {
                 //Adapter Personalizado
                 XmlFeedAdapter adapter = new XmlFeedAdapter(getApplicationContext(), R.layout.itemlista, feed);
+                //atualizar o list view
+                items.setAdapter(adapter);
+                items.setTextFilterEnabled(true);
+            }
+        }
+    }
+
+    private class updateRoomTask extends AsyncTask<Void, Void, List<ItemFeedEntity>> {
+
+        @Override
+        protected List<ItemFeedEntity> doInBackground(Void... params) {
+//            Cursor c = getContentResolver().query(
+//                    EPISODE_LIST_URI,
+//                    COLUMNS,
+//                    null, null, null
+//            );
+            List<ItemFeedEntity> feed = null;
+            MyApplication app = (MyApplication) getApplicationContext();
+            AppDatabase db = app.getDb();
+            feed = db.itemFeedDAO().getAllEpisodes();
+
+
+//            List<NewItemFeed> feed = new ArrayList<>();
+//            if (c != null) {
+//                String[] info = new String[c.getColumnNames().length];
+//                int i, j;
+//                int isDownloading;
+//                if (c.moveToFirst()) {
+//                    do {
+//                        j = 0;
+//                        for (String column : INFO_COLUMNS) {
+//                            i = c.getColumnIndex(column);
+//                            info[j++] = c.getString(i);
+//                        }
+//                        i = c.getColumnIndex(EPISODE_DOWNLOAD_STATE);
+//                        isDownloading = c.getInt(i);
+//                        feed.add(new NewItemFeed(info, isDownloading));
+//                    } while (c.moveToNext());
+//                }
+//                c.close();
+//            }
+            return feed;
+        }
+
+        @Override
+        protected void onPostExecute(List<ItemFeedEntity> feed) {
+            if (feed.isEmpty())
+                Toast.makeText(getApplicationContext(), "No podcasts!", Toast.LENGTH_SHORT).show();
+            else {
+                //Adapter Personalizado
+                RoomXmlFeedAdapter adapter = new RoomXmlFeedAdapter(getApplicationContext(), R.layout.itemlista, feed);
                 //atualizar o list view
                 items.setAdapter(adapter);
                 items.setTextFilterEnabled(true);

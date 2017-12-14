@@ -2,8 +2,11 @@ package br.ufpe.cin.if710.podcast.db.room;
 
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
+import android.support.annotation.NonNull;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 import br.ufpe.cin.if710.podcast.domain.NewItemFeed;
@@ -24,7 +27,7 @@ import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_TITLE
 public class ItemFeedEntity {
 
     @PrimaryKey()
-    private UUID id;
+    private @NonNull String id;
 
     @ColumnInfo(name=EPISODE_TITLE)
     private String episodeTitle;
@@ -54,8 +57,9 @@ public class ItemFeedEntity {
 
     }
 
+    @Ignore
     public ItemFeedEntity(NewItemFeed item){
-        this.id = UUID.randomUUID();
+        this.id = UUID.randomUUID().toString();
         this.episodeDate = item.getPubDate();
         this.episodeDesc = item.getDescription();
         this.episodeDownloadLink = item.getDownloadLink();
@@ -65,11 +69,11 @@ public class ItemFeedEntity {
         this.episodeTitle = item.getTitle();
     }
 
-    public UUID getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -135,5 +139,14 @@ public class ItemFeedEntity {
 
     public void setEpisodeDownloadState(int episodeDownloadState) {
         this.episodeDownloadState = episodeDownloadState;
+    }
+
+    public ArrayList<String> getDetails() {
+        ArrayList<String> details = new ArrayList<>();
+        details.add(getEpisodeTitle());
+        details.add(getEpisodeDesc());
+        details.add(getEpisodeFileUri());
+        details.add(getEpisodeDate());
+        return details;
     }
 }
