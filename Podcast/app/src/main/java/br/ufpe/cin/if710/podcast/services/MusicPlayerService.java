@@ -68,21 +68,6 @@ public class MusicPlayerService extends Service {
         return START_STICKY;
     }
 
-    private class updateOnCreateAndStart extends AsyncTask<String, Void,Void> {
-
-        @Override
-        protected Void doInBackground(String... strings) {
-            String newUriStr = strings[0];
-            MyApplication app = (MyApplication) getApplicationContext();
-            AppDatabase db = app.getDb();
-            ItemFeedEntity item = db.itemFeedDAO().getEpisodeFromFileURI(newUriStr);
-            item.setEpisodeFileUri("");
-            item.setEpisodeDownloadState(0);
-            db.itemFeedDAO().updateIteemFeed(item);
-            return null;
-        }
-    }
-
     private void createAndStartPlayer(final int startId, final String newUriStr) {
         mediaPlayer = MediaPlayer.create(this, Uri.parse(newUriStr));
         currentPodcastUriStr = newUriStr;
@@ -109,7 +94,17 @@ public class MusicPlayerService extends Service {
 //                                EPISODE_FILE_URI + " =? ",
 //                                new String[]{newUriStr}
 //                        );
-                        new updateOnCreateAndStart().execute(newUriStr);
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                MyApplication app = (MyApplication) getApplicationContext();
+                                AppDatabase db = app.getDb();
+                                ItemFeedEntity item = db.itemFeedDAO().getEpisodeFromFileURI(newUriStr);
+                                item.setEpisodeFileUri("");
+                                item.setEpisodeDownloadState(0);
+                                db.itemFeedDAO().updateIteemFeed(item);
+                            }
+                        }).start();
                         if (mediaPlayer != null) {
                             mediaPlayer.reset();
                         }
@@ -118,20 +113,14 @@ public class MusicPlayerService extends Service {
             }
         });
         this.startId = startId;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                mediaPlayer.seekTo(getPosition());
+            }
+        }).start();
 //        mediaPlayer.seekTo(getPosition());
 //        playMusic();
-    }
-
-    private class getPositionTask extends AsyncTask<String,Integer,Void> {
-
-        @Override
-        protected Void doInBackground(String... strings) {
-            int pos = 0;
-            MyApplication app = (MyApplication) getApplicationContext();
-            AppDatabase db = app.getDb();
-            ItemFeedEntity item = db.itemFeedDAO().getEpisodeFromFileURI(currentPodcastUriStr);
-            pos =  item.getEpisodeTimestamp();
-        }
     }
 
     private int getPosition() {
@@ -164,7 +153,12 @@ public class MusicPlayerService extends Service {
     public void pauseMusic() {
         if (mediaPlayer != null && mediaPlayer.isPlaying()) {
             mediaPlayer.pause();
-            savePosition();
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    savePosition();
+                }
+            }).start();
         }
     }
 
