@@ -2,7 +2,9 @@
 
 ## Android Profiler
 
-### MediaPlayer não parece usar muita cpu
+### MediaPlayer
+
+Não usa muita cpu, mas usa com frequência.
 
 ![alt text](files/podplay.gif)
 

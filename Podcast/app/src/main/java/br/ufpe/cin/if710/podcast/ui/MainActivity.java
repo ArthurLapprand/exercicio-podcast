@@ -1,15 +1,17 @@
 package br.ufpe.cin.if710.podcast.ui;
 
-import android.app.Activity;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.BroadcastReceiver;
-import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -23,6 +25,7 @@ import br.ufpe.cin.if710.podcast.R;
 import br.ufpe.cin.if710.podcast.applications.MyApplication;
 import br.ufpe.cin.if710.podcast.db.room.AppDatabase;
 import br.ufpe.cin.if710.podcast.db.room.ItemFeedEntity;
+import br.ufpe.cin.if710.podcast.domain.LiveItemFeed;
 import br.ufpe.cin.if710.podcast.domain.NewItemFeed;
 import br.ufpe.cin.if710.podcast.services.DownloadIntentService;
 import br.ufpe.cin.if710.podcast.ui.adapter.RoomXmlFeedAdapter;
@@ -37,7 +40,7 @@ import static br.ufpe.cin.if710.podcast.services.DownloadIntentService.BROADCAST
 import static br.ufpe.cin.if710.podcast.services.DownloadIntentService.GET_DATA_BROADCAST;
 import static br.ufpe.cin.if710.podcast.services.DownloadIntentService.PODCAST_DOWNLOADED_BROADCAST;
 
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity {
 
     public final static String TAG = "MAIN_ACTIVITY";
 
@@ -48,6 +51,7 @@ public class MainActivity extends Activity {
     private final String RSS_FEED = "http://leopoldomt.com/if710/fronteirasdaciencia.xml";
 
     private ListView items;
+    private LiveItemFeed liveItemFeed;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +59,18 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         items = findViewById(R.id.items);
+
+        liveItemFeed = ViewModelProviders.of(this).get(LiveItemFeed.class);
+
+        final Observer feedObserver = new Observer() {
+            @Override
+            public void onChanged(@Nullable Object o) {
+                RoomXmlFeedAdapter adapter = new RoomXmlFeedAdapter(getApplicationContext(), R.layout.itemlista, (List<ItemFeedEntity>) o);
+                items.setAdapter(adapter);
+            }
+        };
+
+        liveItemFeed.getFeedLiveData().observe(this, feedObserver);
     }
 
     @Override
@@ -89,7 +105,10 @@ public class MainActivity extends Activity {
         );
 
         // Check if starting from notification click
-        switch (getIntent().getAction()) {
+        String action = getIntent().getAction();
+        if (action == null)
+            Toast.makeText(this, "Null action", Toast.LENGTH_SHORT).show();
+        else switch (getIntent().getAction()) {
             case UPDATE_LIST_ACTION:
                 updatePodcastList();
                 break;
@@ -233,9 +252,12 @@ public class MainActivity extends Activity {
                 Toast.makeText(getApplicationContext(), "No podcasts!", Toast.LENGTH_SHORT).show();
             else {
                 //Adapter Personalizado
-                RoomXmlFeedAdapter adapter = new RoomXmlFeedAdapter(getApplicationContext(), R.layout.itemlista, feed);
+//                RoomXmlFeedAdapter adapter = new RoomXmlFeedAdapter(getApplicationContext(), R.layout.itemlista, feed);
                 //atualizar o list view
-                items.setAdapter(adapter);
+//                items.setAdapter(adapter);
+
+                // Usando livedata
+                liveItemFeed.getFeedLiveData().setValue(feed);
                 items.setTextFilterEnabled(true);
             }
         }
