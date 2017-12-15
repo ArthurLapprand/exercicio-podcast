@@ -45,6 +45,7 @@ public class ItemFeedEntity{
 }
 ```
 </details>
+<br>
 
 O nosso DAO(Data Access Object), responsável por ser a interface com o qual o nosso RoomDatabase interage com a tabela da entidade relacianada ao DAO.
 
@@ -76,6 +77,7 @@ public interface ItemFeedDAO {
 }
 ```
 </details>
+<br>
 
 E nosso RoomDatabase, objeto cuja instância representa o banco de dados SQLite do Android do nosso app. Ele só deve ser instanciado uma única vez, pois uma instância deste objeto é muito pesado na memória.
 
@@ -90,13 +92,14 @@ public abstract class AppDatabase extends RoomDatabase {
 
 ```
 </details>
+<br>
 
 A implementação dessas 3 classes facilitou na chamada das funções do SQLite, e ajudou a tornar mais legivel as funções que interagiam com o banco. Nós só precisavamos ter acesso a instância do nosso AppDatabase para podermos realizar as operações definidas nos DAOs. Além de tornar o código muito mais legível, e facilitar a manutenção e expansão do código ao concentrar todas as operações do banco nos DAOs.
 
-Exemplo de código sem Room
-
+<details>
+ <summary>Exemplo de código sem Room</summary>
+ 
 ```JAVA
-
 ContentValues contentValues = new ContentValues();
 contentValues.put(EPISODE_DOWNLOAD_STATE, 1);
 getContentResolver().update(
@@ -107,15 +110,17 @@ getContentResolver().update(
 );
 
 ```
+</details>
 
-Função equivalente com Room
-
+<details>
+ <summary>Função equivalente com Room</summary>
 ```JAVA
 ItemFeedEntity item = db.itemFeedDAO().getEpisodeFromDownloadLink(downloadLink);
 item.setEpisodeDownloadState(1);
 db.itemFeedDAO().updateIteemFeed(item);
-
 ```
+</details>
+<br>
 
 O código ficou muito mais intuitivo, por tratar da função SQL no próprio DAO.
 
@@ -137,6 +142,7 @@ public class LiveItemFeed extends ViewModel {
 }
 ```
 </details>
+<br>
 
 No nosso caso, para funcionar só precisamos alterar a MainActivity, instanciando LiveItemFeed e criando um Observer que irá atualizar a lista.
 
@@ -169,5 +175,6 @@ liveItemFeed.getFeedLiveData().setValue(feed);
 items.setTextFilterEnabled(true);
 ```
 </details>
+<br>
 
 Naturalmente outras refatorações de código tornariam isto mais interessante, como juntar o LiveData ao Room e dividir as atualizações do feed para inserção de apenas 1 item por vez.
