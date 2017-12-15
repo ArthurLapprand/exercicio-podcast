@@ -9,6 +9,8 @@ import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
 
+import com.squareup.leakcanary.LeakCanary;
+
 import br.ufpe.cin.if710.podcast.R;
 import br.ufpe.cin.if710.podcast.db.room.AppDatabase;
 
@@ -26,6 +28,12 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        if (LeakCanary.isInAnalyzerProcess(this)) {
+            // This process is dedicated to LeakCanary for heap analysis.
+            // You should not init your app in this process.
+            return;
+        }
+        LeakCanary.install(this);
         createNotificationChannel();
         areActivitiesCreated = false;
         this.db = Room.databaseBuilder(this,AppDatabase.class,"podcast-database").build();
