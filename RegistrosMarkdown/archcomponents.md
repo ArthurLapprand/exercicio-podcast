@@ -114,6 +114,7 @@ getContentResolver().update(
 
 <details>
  <summary>Função equivalente com Room</summary>
+ 
 ```JAVA
 ItemFeedEntity item = db.itemFeedDAO().getEpisodeFromDownloadLink(downloadLink);
 item.setEpisodeDownloadState(1);
