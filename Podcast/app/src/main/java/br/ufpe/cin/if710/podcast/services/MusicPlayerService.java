@@ -2,12 +2,9 @@ package br.ufpe.cin.if710.podcast.services;
 
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.ContentValues;
 import android.content.Intent;
-import android.database.Cursor;
 import android.media.MediaPlayer;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Environment;
 import android.os.IBinder;
@@ -21,13 +18,7 @@ import br.ufpe.cin.if710.podcast.R;
 import br.ufpe.cin.if710.podcast.applications.MyApplication;
 import br.ufpe.cin.if710.podcast.db.room.AppDatabase;
 import br.ufpe.cin.if710.podcast.db.room.ItemFeedEntity;
-import br.ufpe.cin.if710.podcast.domain.ItemFeed;
 import br.ufpe.cin.if710.podcast.ui.MusicPlayerActivity;
-
-import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_DOWNLOAD_STATE;
-import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_FILE_URI;
-import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_LIST_URI;
-import static br.ufpe.cin.if710.podcast.db.PodcastProviderContract.EPISODE_TIMESTAMP;
 
 public class MusicPlayerService extends Service {
 
@@ -53,10 +44,7 @@ public class MusicPlayerService extends Service {
             if (!newUriStr.equals(currentPodcastUriStr)) {
                 // Stop current if playing and play new podcast
                 if (mediaPlayer != null) {
-                    pauseMusic();
-                    mediaPlayer.stop();
-                    mediaPlayer.release();
-                    createAndStartPlayer(startId, newUriStr);
+                    pauseMusic(newUriStr);
                 }
                 // Instantiate new Player and start playing
                 else {
@@ -150,20 +138,29 @@ public class MusicPlayerService extends Service {
         }
     }
 
-    public void pauseMusic() {
+    public void pauseMusic(String newUriStr) {
         if (mediaPlayer != null && mediaPlayer.isPlaying()) {
             mediaPlayer.pause();
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    savePosition();
-                }
-            }).start();
+            new Thread(new CustomRunnable(newUriStr)).start();
         }
     }
 
-    private void savePosition() {
+    public void pauseMusicOnly() {
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            mediaPlayer.pause();
+        }
+    }
 
+    class CustomRunnable implements Runnable {
+        String newUriStr;
+        public CustomRunnable(String uriStr) { newUriStr = uriStr; }
+        @Override
+        public void run() {
+            savePosition(newUriStr);
+        }
+    }
+
+    private void savePosition(String newUriStr) {
         int pos = mediaPlayer.getCurrentPosition();
         MyApplication app = (MyApplication) getApplicationContext();
         AppDatabase db = app.getDb();
@@ -178,6 +175,9 @@ public class MusicPlayerService extends Service {
 //                EPISODE_FILE_URI + " =? ",
 //                new String[]{currentPodcastUriStr}
 //        );
+        mediaPlayer.stop();
+        mediaPlayer.release();
+        createAndStartPlayer(startId, newUriStr);
     }
 
     @Override

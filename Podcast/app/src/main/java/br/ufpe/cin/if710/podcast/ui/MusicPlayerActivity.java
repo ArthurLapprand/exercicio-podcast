@@ -69,7 +69,7 @@ public class MusicPlayerActivity extends Activity {
             @Override
             public void onClick(View v) {
                 if (isBound) {
-                    musicPlayerService.pauseMusic();
+                    musicPlayerService.pauseMusicOnly();
                 } else {
                     Toast.makeText(getApplicationContext(), "Music Service not bound!", Toast.LENGTH_SHORT).show();
                 }
